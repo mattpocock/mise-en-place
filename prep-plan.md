@@ -1,27 +1,27 @@
 # Prep Plan
 
-The morning ritual. Operationalises **Work Clean**: Prep before Ship, every day, in a fixed order. See [CONTEXT.md](./CONTEXT.md) for terminology.
+The morning ritual. **Work Clean**: Prep before Ship, every day, in a fixed order.
 
 ## Daily morning (Tue–Fri)
 
-| Time        | Block                                   | Discipline                                                                                                                                                  |
-| ----------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 09:00–09:10 | **The First Move**: Triage Queue → zero | Process yesterday's Inbox residue into homes (Notes, Tasks, trash). Nothing else opens until this is done.                                                  |
-| 09:10–09:25 | **Analytics Review**                    | Bounded numbers check across Channels. Yields signals — most ephemeral, occasionally a Note.                                                                |
-| 09:25–09:55 | **Capture & Note Work**                 | Attend slow Note Channels (books, podcasts, longform, conversation memos); write what you pull out into proper Notes; characterise as Hook/Brick; wikilink. |
-| 09:55–10:10 | **Pitch Work**                          | Promote Hooks+Bricks into new Pitches when Inventory was flagged shallow on Monday.                                                                         |
-| 10:10–12:30 | **Ship**                                | Film / Adapt / Post.                                                                                                                                        |
+| Time        | Block                                   | Discipline                                   |
+| ----------- | --------------------------------------- | -------------------------------------------- |
+| 09:00–09:10 | **The First Move**: Triage Queue → zero | Process _triage queue_ into _tasks_/_notes_. |
+| 09:10–09:25 | **Analytics Review**                    | Check channel numbers.                       |
+| 09:25–09:55 | **Capture & Note Work**                 | Take _notes_ on channels.                    |
+| 09:55–10:10 | **Pitch Work**                          | Create _pitches_ from _notes_.               |
+| 10:10–12:30 | **Ship**                                | Film / Adapt / Post.                         |
 
 ## Monday morning (weekly variant)
 
-| Time        | Block                               | Discipline                                                 |
-| ----------- | ----------------------------------- | ---------------------------------------------------------- |
-| 09:00–09:10 | **First Move**: Triage Queue → zero |                                                            |
-| 09:10–09:25 | **Analytics Review**                |                                                            |
-| 09:25–09:45 | **Inventory Check**                 | Walk each queue; yield Tasks for shallow ones (see below). |
-| 09:45–10:15 | **Scheduling**                      | Set the week's Ships against the Revenue/Audience split.   |
-| 10:15–10:45 | **Capture & Note Work**             | Same as daily.                                             |
-| 10:45–12:30 | **Ship or Pitch Work**              | Whichever Scheduling produced.                             |
+| Time        | Block                               | Discipline                                                           |
+| ----------- | ----------------------------------- | -------------------------------------------------------------------- |
+| 09:00–09:10 | **First Move**: Triage Queue → zero | Same as daily                                                        |
+| 09:10–09:25 | **Analytics Review**                | Same as daily                                                        |
+| 09:25–09:45 | **Inventory Check**                 | Check _Pitch List_, _Shadow Newsletter_, and _Deliverable Calendar_. |
+| 09:45-10:15 | **Capture & Note Work**             | Same as daily.                                                       |
+| 10:15-10:45 | **Scheduling**                      | Commit the week's ships to the _Deliverable Calendar_.               |
+| 10:45–12:30 | **Ship Work**                       |                                                                      |
 
 ## What an Inventory Check actually involves
 
@@ -32,6 +32,11 @@ For each queue, ask one question matched to its failure mode. Yields Tasks (e.g.
 - **Depth** — How many live Pitches? Is it ≥ target?
 - **Mix** — Revenue/Audience split of the Pitch List. Does it match the ratio Scheduling needs this quarter?
 - **Freshness** — Any Pitches that have gone stale? Kill them.
+
+### Deliverable Calendar (thinness)
+
+- **Lookahead** — How many days of committed ships are on the Calendar from today? Is it ≥ target (1 week)?
+- **Drift** — Any entries past their ship date un-shipped? Re-date or kill.
 
 ### Shadow Newsletter (outgrowth)
 
@@ -49,6 +54,7 @@ Inventory Check without targets collapses into vibes. Pick numbers; adjust over 
 - **Pitch List target depth**: TBD (suggested: 6)
 - **Pitch List target Revenue/Audience mix**: TBD (suggested: 1:3)
 - **Shadow Newsletter target buffer**: TBD (suggested: 8 weeks ahead of furthest subscriber)
+- **Deliverable Calendar target lookahead**: 1 week of committed ships
 
 ## Open questions
 

@@ -86,8 +86,14 @@ A candidate Deliverable in pre-production: at least one Hook plus the Bricks nee
 _Avoid_: Concept (too vague), Treatment (jargon), Idea, Topic, Script (no separate script step exists)
 
 **Pitch List**:
-The collection of current Pitches. Functions as the embryonic content calendar — the place to compare Pitches against each other, prioritise, and decide what to record next. The Pitch List is part of the **Inventory**; its failure mode is **depletion** (Films drain it).
-_Avoid_: Backlog, Queue, Pipeline
+The collection of current Pitches — the candidate pool from which **Scheduling** draws when committing a Pitch to the **Deliverable Calendar**. The place to compare Pitches against each other, prioritise, and decide what to Film next. Part of the **Inventory**; failure mode is **depletion** (Films drain it). Distinct from the **Deliverable Calendar**: the Pitch List holds unscheduled candidates; the Calendar holds committed ships.
+_Avoid_: Backlog, Queue, Pipeline, Content Calendar (the Pitch List is upstream of the Calendar, not the same thing)
+
+### Deliverable Calendar
+
+**Deliverable Calendar**:
+The forward-looking schedule of committed **Deliverable** ships — each entry pairs a Deliverable (or Deliverable-to-be) with a ship date and target **Channel(s)**. Holds entries that originate from the **Pitch List** (a Pitch scheduled for Film) _and_ entries that don't (a Newsletter or Article adapted from a Filmed Pitch, a Shadow Newsletter episode, a standalone Tweet). The output of **Scheduling**; the source of truth for "what ships when". Part of the **Inventory** — its own outbound queue with its own failure mode, alongside the Pitch List and Shadow Newsletter.
+_Avoid_: Content Calendar (vague — "content" is undifferentiated; we ship Deliverables), Editorial Calendar (publishing-jargon, implies an editor role that doesn't exist here), Schedule (overloaded), Roadmap (product-jargon)
 
 ### Packaging
 
@@ -118,15 +124,15 @@ A bounded daily Prep Task: read yesterday's numbers across Channels (YouTube, Tw
 _Avoid_: Pulse Check (too generic, easy to rationalise Graze into), Numbers Check, Daily Read
 
 **Inventory**:
-The collection of outbound supply queues that feed Ship: the **Pitch List**, the **Shadow Newsletter** sequence, and any other queue of pre-built items waiting to be Shipped. Distinct queues have distinct failure modes — Pitch List depletes (Films drain it); Shadow Newsletter is outgrown (subscribers reach the end). A shallow Inventory at **Scheduling** time is one face of **Work Dirty**: the decision was honest, but the supply was bankrupt.
+The collection of outbound queues that feed Ship: the **Pitch List**, the **Shadow Newsletter** sequence, the **Deliverable Calendar**, and any other queue of pre-built or pre-committed items. Distinct queues have distinct failure modes — Pitch List depletes (Films drain it); Shadow Newsletter is outgrown (subscribers reach the end); Deliverable Calendar **thins** (lookahead window of committed ships shrinks below target). A shallow Inventory at **Scheduling** time is one face of **Work Dirty**: the decision was honest, but the supply was bankrupt.
 _Avoid_: Supply, Backlog (loaded with software-dev connotations), Pipeline, Stockpile
 
 **Inventory Check**:
-A bounded periodic Prep Task — parallel in shape to **Analytics Review** but pointed at outbound rather than inbound: walk each queue in the Inventory, assess depth against its failure mode (depletion or outgrowth), and yield Tasks for any queue running shallow. Time-boxed; doesn't include the topping-up work itself, only the check that surfaces the need.
+A bounded periodic Prep Task — parallel in shape to **Analytics Review** but pointed at outbound rather than inbound: walk each queue in the Inventory, assess depth against its failure mode (depletion, outgrowth, or thinness), and yield Tasks for any queue running shallow. Time-boxed; doesn't include the topping-up work itself, only the check that surfaces the need.
 _Avoid_: Stock Check, Larder Check (kitchen-cute but unfamiliar), Supply Review (corporate-mush), Depth Check
 
 **Scheduling**:
-The activity of choosing what Ships next, in what mix, against the **Revenue/Audience** split. Operates at multiple cadences (weekly tactical: which Pitch is Filmed this week; quarterly strategic: what's the Revenue/Audience ratio this quarter) — same discipline, different granularity. A Prep Task, not a Ship Task: Scheduling decides what to Ship, it doesn't Ship anything itself. Honest Scheduling depends on a healthy **Inventory** — Scheduling without an Inventory Check is wishful thinking.
+The activity of choosing what Ships next, in what mix, against the **Revenue/Audience** split, and committing those choices to the **Deliverable Calendar**. Operates at multiple cadences (weekly tactical: which Pitch is Filmed this week; quarterly strategic: what's the Revenue/Audience ratio this quarter) — same discipline, different granularity. A Prep Task, not a Ship Task: Scheduling decides what to Ship, it doesn't Ship anything itself. Honest Scheduling depends on a healthy **Inventory** — Scheduling without an Inventory Check is wishful thinking.
 _Avoid_: Planning (too generic), Programming (broadcasting jargon), Plotting, Routing
 
 **Graze**:
@@ -182,8 +188,9 @@ _Avoid_: Working Messy, Slop, Disorganised, In the Weeds (overloaded with restau
 - A **Repo** requires **Repo Maintenance** to remain a viable **Channel** — overhead, not direct business output
 - The **Triage Queue** is a **Channel** in its own right (currently the Todoist Inbox), not a slot inside another Channel — material from many Channels flows into it via **Capture**, then leaves it via Triage
 - Every **Deliverable** is either a **Revenue Deliverable** or an **Audience Deliverable** — the role determines which feedback loop applies (immediate revenue vs compounding audience growth)
-- The **Inventory** is the union of outbound supply queues — currently the **Pitch List** and the **Shadow Newsletter** sequence; **Inventory Check** is the bounded Prep Task that surfaces shallow queues, parallel in shape to **Analytics Review**
-- **Scheduling** decides what Ships next against the Revenue/Audience split; it depends on a healthy **Inventory** to be honest rather than wishful
+- The **Inventory** is the union of outbound queues — currently the **Pitch List**, the **Shadow Newsletter** sequence, and the **Deliverable Calendar**; **Inventory Check** is the bounded Prep Task that surfaces shallow queues, parallel in shape to **Analytics Review**
+- **Scheduling** moves Pitches from the **Pitch List** onto the **Deliverable Calendar** with a date and target **Channel(s)**; it depends on a healthy **Inventory** to be honest rather than wishful
+- The **Deliverable Calendar** also holds entries that didn't originate on the **Pitch List** — adapted **Newsletters** and **Articles** derived from a Filmed Pitch, **Shadow Newsletter** episodes, standalone **Tweets**
 - **Work Clean** governs **Prep** and the transition into **Ship** on both inbound (clean Triage Queue, no Graze) and outbound (healthy Inventory, finished Pitches) sides; **Work Dirty** is its umbrella failure mode
 
 ### Pipeline (typical Landscape Video)

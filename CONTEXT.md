@@ -32,9 +32,9 @@ _Avoid_: Inbox (too narrow — Todoist Inbox is one Task Channel, not the catego
 A Channel whose inbound material is predominantly Note-shaped — ideas, observations, claims worth keeping. Examples: books, shower thoughts, others' tweets, conversations. Capture from a Note Channel yields a Note.
 _Avoid_: Idea Stream, Source
 
-**Todoist Inbox**:
-A Channel — inbound-only, mixed Task/Note-feeding — that acts as a personal staging surface. Items land here from multiple capture routes (Pixel Watch reminders, manual typing, voice notes, forwarded emails) and are triaged into proper Tasks or promoted into Notes. Distinct from the structured planning sections of Todoist, which hold already-triaged Tasks.
-_Avoid_: Triage (the act, not the place), Inbox (overloaded with email)
+**Triage Queue**:
+A Channel — inbound-only, mixed Task/Note-feeding — where Captured material lands before it has a home, to be promoted into a Note or projected into a properly-placed Task. Items arrive from multiple capture routes (Pixel Watch reminders, manual typing, voice notes, forwarded emails). Captures that already know their home (a book quote written straight into a Note file, an issue filed directly to its Repo) skip the Triage Queue entirely. Currently implemented as the Todoist Inbox; distinct from the structured planning sections of Todoist, which hold already-triaged Tasks. A non-empty Triage Queue at rest is one face of **Work Dirty**.
+_Avoid_: Triage (the act, not the place), Inbox (overloaded with email), Todoist Inbox (the implementation, not the concept), Staging Surface, Holding Pen
 
 **Repo**:
 A software repository Matt maintains — currently all open-source — acting as a bidirectional Channel: issues, PRs, and discussions flow in (Capture material); code and releases flow out. Repos also serve as concrete demo material inside Courses. A Repo requires ongoing Maintenance (see Tasks) which is necessary to keep the Channel alive but doesn't directly produce Notes or Deliverables.
@@ -106,7 +106,11 @@ A bounded daily Prep Task: read yesterday's numbers across Channels (YouTube, Tw
 _Avoid_: Pulse Check (too generic, easy to rationalise Graze into), Numbers Check, Daily Read
 
 **Graze**:
-Pathological Channel attention — engaging with a Channel without yielding a Note or a Task. Capture's shadow: it looks like attending to a Channel productively, but produces nothing. Examples: Twitter scroll that captures nothing, refreshing an empty inbox, opening Stripe at 11pm. Naming this matters because an agent can recognise it ("user opened Twitter 20 minutes ago, no Capture logged — likely Graze") and Matt can recognise it in himself. Distinct from Analytics Review, which is bounded and yields signals.
+Pathological Channel attention — engaging with a Channel without yielding a Note or a Task. Capture's shadow: it looks like attending to a Channel productively, but produces nothing. Boredom-triggered: Twitter scroll that captures nothing, refreshing an empty inbox, opening Stripe at 11pm. Naming this matters because an agent can recognise it ("user opened Twitter 20 minutes ago, no Capture logged — likely Graze") and Matt can recognise it in himself. Distinct from Analytics Review, which is bounded and yields signals. The Ship-triggered cousin is **Lurk**. A specific shape of **Work Dirty**.
+
+**Lurk**:
+A specific sub-type of Graze — compulsively checking the engagement signal on a freshly-shipped Deliverable in the early window (~first 30 min), before the signal has settled. Cross-Deliverable: applies to Tweets, Landscape Videos, Shorts alike. Powered by a noisy early signal (e.g. likes-per-minute) that the brain treats as decision-relevant when it isn't — the only honest read is the post-settling one that **Analytics Review** delivers. Lurk is the dissociated, sideline-watching quality of being a helpless observer of your own post's reception. An agent can recognise it ("user shipped a Tweet 12 min ago and has reopened Twitter 4 times — likely Lurking"). The fact that deletion remains available is what makes Lurk feel decision-relevant; it isn't. Like Graze, a specific shape of **Work Dirty**.
+_Avoid_: Hover, Echo Check, Vanity Loop, Doomscroll (implies negative content; Lurk's signal is often positive)
 _Avoid_: Lurk (too neutral), Doomscroll (implies negative content), Drift, Idle Check
 
 ### Ship
@@ -123,6 +127,16 @@ _Avoid_: Record (collides with course-video-manager terminology), Shoot
 The act of transforming a Landscape Video's transcript into a different-format Deliverable — an Article for the AI Hero CMS, or a Newsletter for email. Adaptation is reformatting, not re-authoring: the underlying ideas are the Pitch's; Adapt fits them to a Channel's shape.
 _Avoid_: Derive (too mathematical), Repurpose, Spin out
 
+### Discipline
+
+**Work Clean**:
+The discipline of keeping the Prep environment ordered before and during Ship — Channel attention always yielding, the **Triage Queue** at zero, and a Pitch's Prep finished before Filming starts. Lifted from Dan Charnas's _Work Clean_, which transposes kitchen mise en place onto knowledge work; the repo name commits to the metaphor and this term names the active practice. Used as a verb ("Work Clean before filming") and as a state ("the workspace is Clean"). Charnas's wider framing (the first move, open hands, etc.) is adopted wholesale even where not yet operationalised here.
+_Avoid_: Mise (collides with the repo name), Stationed, Clean Hands (too narrow), Tidy
+
+**Work Dirty**:
+The umbrella failure mode — failing to Work Clean. Three concrete shapes: dirty Channel attention (**Graze**, and its post-Ship sibling **Lurk**), a non-empty **Triage Queue** at rest, and a Pitch whose Prep is incomplete when Ship starts. Naming the umbrella connects existing pathology vocabulary (Graze, Lurk) to the positive principle and makes it possible to ask "in what shape am I Working Dirty right now?" rather than diagnosing each pathology separately.
+_Avoid_: Working Messy, Slop, Disorganised, In the Weeds (overloaded with restaurant jargon, opposite valence to Charnas's usage)
+
 ## Relationships
 
 - A **Channel** is bidirectional: material flows in (feeding **Notes** or **Tasks** via **Capture**) and **Deliverables** are shipped out
@@ -137,6 +151,8 @@ _Avoid_: Derive (too mathematical), Repurpose, Spin out
 - A **Repo** is a kind of **Channel**: issues/PRs/discussions feed **Notes** or **Tasks** via **Capture**; code and releases ship out
 - A **Repo** can be the subject of a **Pitch** and can appear as a demo inside a **Course**
 - A **Repo** requires **Repo Maintenance** to remain a viable **Channel** — overhead, not direct business output
+- The **Triage Queue** is a **Channel** in its own right (currently the Todoist Inbox), not a slot inside another Channel — material from many Channels flows into it via **Capture**, then leaves it via Triage
+- **Work Clean** governs **Prep** and the transition into **Ship**; **Work Dirty** is its umbrella failure mode, with **Graze**, **Lurk**, a non-empty **Triage Queue**, and an unfinished **Pitch** at Ship time as its specific shapes
 
 ### Pipeline (typical Landscape Video)
 

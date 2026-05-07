@@ -9,61 +9,58 @@ The things produced and worked on — the nouns that flow through the system.
 ### Note
 
 **Note**:
-An atomic Markdown file that captures one original thought. The fundamental unit of value in the business — the layer between Channels and Deliverables. Notes are flat (no stage or ripeness), connected via wikilinks, and explored via graph view. Stale Notes are purged, not demoted. Every Note is currently characterised as either a **Hook** or a **Brick** (a role, not a stage — it can change).
+An atomic Markdown file capturing one original thought. Flat (no stage), connected via wikilinks. Every Note is currently a **Hook** or a **Brick** — a role, not a stage.
 _Avoid_: Zettel (jargon), Idea (too vague), Card
 
 **Hook**:
-A Note with enough opinion, surprise, or claim-strength to anchor a Pitch on its own. Hooks are the Notes that "could be a YouTube video by themselves." A Pitch must contain at least one Hook. A Hook can also live inside a Course alongside Bricks.
+A Note with enough opinion, surprise, or claim-strength to anchor a Pitch on its own. A Pitch must contain at least one Hook.
 _Avoid_: Pitch Note, Headline, Punch
 
 **Brick**:
-A Note that has substance but no hook strong enough to drive a Pitch — explanatory, definitional, observational, structural. Bricks are not lesser Notes; they are differently-shaped ones, load-bearing inside Courses and longer Deliverables. A Brick can be promoted to a Hook later if a hook-shaped angle on it emerges.
+A Note with substance but no hook strong enough to drive a Pitch — explanatory, definitional, structural. Load-bearing inside Courses and longer Deliverables. Can be re-characterised as a Hook later.
 _Avoid_: Filler, Body, Substrate, Foundation, Building Block
 
 **Pitch**:
-A candidate Deliverable in pre-production: at least one Hook plus the Bricks needed to give it loose structure, plus a working angle, working title, and thumbnail concept. The Hooks and Bricks themselves provide the structure for filming — there is no separate script step. A Pitch is lightweight, reversible, and meant to be killed cheaply. It is the test object for whether an idea is worth recording: if you can't package a Pitch, you don't have one. Per-Channel Packaging variants are not part of a Pitch — only the core layer derived from the Hook(s).
+A candidate Deliverable in pre-production: at least one Hook plus supporting Bricks, a working angle, title, and thumbnail concept. Lightweight and meant to be killed cheaply — if you can't package a Pitch, you don't have one.
 _Avoid_: Concept (too vague), Treatment (jargon), Idea, Topic, Script (no separate script step exists)
 
 **Deliverable**:
-Anything shipped to an audience that is derived from one or more Notes. A Deliverable lands on one or more Channels, each with its own Packaging. Every Deliverable plays one of two roles: **Revenue Deliverable** or **Audience Deliverable**.
+Anything shipped to an audience, derived from one or more Notes. Lands on one or more Channels, each with its own Packaging. Plays one of two roles: **Revenue Deliverable** or **Audience Deliverable**.
 _Avoid_: Output (too generic), Artifact
 
 **Revenue Deliverable**:
-A Deliverable that operates on the number — directly converts current audience into money. Currently: **Course**, **Cohort**. Failure has immediate consequence (lower earnings this month), so Revenue Deliverables feel urgent — which is the trap: their urgency biases attention away from the Audience side, starving the multiplier.
+A Deliverable that operates on the number — converts current audience into money.
 _Avoid_: Paid Deliverable (names the price, not the role), Earner
 
 **Audience Deliverable**:
-A Deliverable that operates on the multiplier — grows the audience that future Revenue Deliverables convert against. Currently: **Landscape Video**, **Short**, **Article**, **Newsletter**, **Tweet**, **Shadow Newsletter Episode**. Failure has compounding rather than immediate consequence, so under-investment is invisible day-to-day and devastating over a year. Naming the role (rather than calling these "free") prevents the label from quietly denigrating the multiplier.
-_Avoid_: Free Deliverable (denigrates by naming what's missing rather than what's there), Reach, Top-of-Funnel
+A Deliverable that operates on the multiplier — grows the audience that future Revenue Deliverables convert against.
+_Avoid_: Free Deliverable (denigrates by naming what's missing), Reach, Top-of-Funnel
 
 **Course**:
-A structured, paid educational product hosted on AI Hero, authored via the Course Video Manager. Composed of Bricks and (sometimes) Hooks.
-
-**Cohort**:
-A time-bounded, live-taught variant of a Course.
+A structured, paid educational product hosted on AI Hero, authored via the Course Video Manager. Composed of Notes.
 
 **Landscape Video**:
-A 16:9 recorded video, typically long-form. Lands on YouTube, Twitter, LinkedIn, and the AI Hero CMS. The aspect ratio dictates the Channel set — these are the platforms that accept landscape and where Matt has audience.
+A 16:9 recorded video, typically long-form. Lands on YouTube, Twitter, LinkedIn, and the AI Hero CMS.
 
 **Short**:
-A 9:16 vertical video. Eligible Channels are TikTok, YouTube Shorts, and Instagram Reels; active Channels are TikTok and YouTube Shorts (Instagram has no audience traction). A Short Hook must land in ~3 seconds, which constrains the Hook differently from a Landscape Video.
+A 9:16 vertical video. Active Channels: TikTok, YouTube Shorts (Instagram Reels eligible but no traction). The Hook must land in ~3 seconds.
 
 **Article**:
-A long-form written piece published on the AI Hero CMS, typically _adapted_ from a Landscape Video's transcript rather than composed from Notes from scratch. Lives alongside the embedded video on AI Hero.
+A long-form written piece on the AI Hero CMS, typically _adapted_ from a Landscape Video's transcript. Lives alongside the embedded video.
 
 **Newsletter**:
-An email sent to subscribers, typically _adapted_ from a Landscape Video's transcript. Each issue is a transcript-derived item, not a from-scratch write-up. Broadcast in shape: one issue ships once to all subscribers — distinct from a **Shadow Newsletter Episode**, which ships continuously to each new subscriber on schedule.
+An email broadcast to subscribers, typically _adapted_ from a Landscape Video's transcript. One issue ships once to all subscribers — distinct from a **Shadow Newsletter Episode** (drip).
 
 **Shadow Newsletter Episode**:
-A single email in the **Shadow Newsletter** sequence — the unit that ships. Structurally distinct from a **Newsletter** issue: a Newsletter issue is broadcast (one ship to all subscribers); a Shadow Newsletter Episode is drip (one ship per new subscriber, on schedule). An **Audience Deliverable**. The container that holds Episodes is the **Shadow Newsletter** (see Containers).
+A single email in the **Shadow Newsletter** drip sequence — one ship per new subscriber, on schedule. An Audience Deliverable. Held by the **Shadow Newsletter** container.
 _Avoid_: Drop, Step, Installment, Beat
 
 **Packaging**:
-The selling layer of a Deliverable on a given Channel — the bits that decide whether someone clicks, opens, or reads. Derived from the Pitch's Hook(s): the Hook's central claim becomes the title, its surprise becomes the thumbnail, its tension becomes the framing copy. Universal across Deliverables but shaped per Channel: for a long-form video, Packaging includes the YouTube title + thumbnail, the framing text on Twitter and LinkedIn, and the title + description on the AI Hero CMS. Core Packaging (title, thumbnail concept) lives on the Pitch; per-Channel variants are produced at ship time.
+The selling layer of a Deliverable on a Channel — title, thumbnail, framing copy. Derived from the Pitch's Hook(s). Core Packaging lives on the Pitch; per-Channel variants are produced at ship time.
 _Avoid_: Marketing copy, Promo, Metadata
 
 **Task**:
-A discrete, schedulable unit of work — the kind of thing that lives as a Todoist row. Tasks are produced from Channels (especially Task Channels) via Capture. A Task is an Activity instance — its kind (Capture, Film, Adapt, Scheduling, etc.) is named in the Activities section. Tasks carry attributes — due date, project, recurrence — rather than subtypes; the categorisation lives in Todoist's own structures (sections, labels, dates), not in this glossary.
+A discrete, schedulable unit of work — a Todoist row. Every Activity instance is a Task.
 _Avoid_: To-Do, Action, Errand, Chore, Job
 
 ## Containers
@@ -71,43 +68,43 @@ _Avoid_: To-Do, Action, Errand, Chore, Job
 The places where raw materials rest between flows. Distinct from Channels (which are streams, not wells).
 
 **Inventory**:
-The collection of outbound queues that feed Ship: the **Pitch List**, the **Shadow Newsletter** sequence, the **Deliverable Calendar**, and any other queue of pre-built or pre-committed items. An umbrella container — distinct queues have distinct failure modes: Pitch List depletes (Films drain it); Shadow Newsletter is outgrown (subscribers reach the end); Deliverable Calendar **thins** (lookahead window of committed ships shrinks below target). A shallow Inventory at **Scheduling** time is one face of **Work Dirty**: the decision was honest, but the supply was bankrupt.
-_Avoid_: Supply, Backlog (loaded with software-dev connotations), Pipeline, Stockpile
+The umbrella for outbound queues feeding Ship: the **Pitch List**, the **Shadow Newsletter** sequence, the **Deliverable Calendar**. A shallow Inventory at **Scheduling** time is one face of **Work Dirty**.
+_Avoid_: Supply, Backlog (software-dev connotations), Pipeline, Stockpile
 
 **Pitch List**:
-The collection of current Pitches — the candidate pool from which **Scheduling** draws when committing a Pitch to the **Deliverable Calendar**. The place to compare Pitches against each other, prioritise, and decide what to Film next. Part of the **Inventory**; failure mode is **depletion** (Films drain it). Distinct from the **Deliverable Calendar**: the Pitch List holds unscheduled candidates; the Calendar holds committed ships.
-_Avoid_: Backlog, Queue, Pipeline, Content Calendar (the Pitch List is upstream of the Calendar, not the same thing)
+The pool of current Pitches from which **Scheduling** draws. Part of the **Inventory**; failure mode is **depletion** (Films drain it). Upstream of the **Deliverable Calendar**.
+_Avoid_: Backlog, Queue, Pipeline, Content Calendar
 
 **Deliverable Calendar**:
-The forward-looking schedule of committed **Deliverable** ships — each entry pairs a Deliverable (or Deliverable-to-be) with a ship date and target **Channel(s)**. Holds entries that originate from the **Pitch List** (a Pitch scheduled for Film) _and_ entries that don't (a Newsletter or Article adapted from a Filmed Pitch, a Shadow Newsletter Episode, a standalone Tweet). The output of **Scheduling**; the source of truth for "what ships when". Part of the **Inventory** — its own outbound queue with its own failure mode, alongside the Pitch List and Shadow Newsletter.
-_Avoid_: Content Calendar (vague — "content" is undifferentiated; we ship Deliverables), Editorial Calendar (publishing-jargon, implies an editor role that doesn't exist here), Schedule (overloaded), Roadmap (product-jargon)
+The forward-looking schedule of committed Deliverable ships — each entry pairs a Deliverable with a ship date and target Channel(s). Output of **Scheduling**. Holds Pitch-originated entries _and_ adapted/standalone ones (Newsletters, Articles, Shadow Newsletter Episodes, Tweets). Part of the **Inventory**.
+_Avoid_: Content Calendar (vague), Editorial Calendar (jargon), Schedule (overloaded), Roadmap
 
 **Shadow Newsletter**:
-The evergreen drip sequence — a fixed series of **Shadow Newsletter Episodes** that every new subscriber receives in order, regardless of when they joined. A container, not a Deliverable: the Episodes are what ship; the sequence holds them. Failure mode is **outgrowth** — long-engaged subscribers reach the end of the sequence and run out, so the sequence must be longer than the typical retention window. Part of the **Inventory**.
-_Avoid_: Drip (too generic), Onboarding Sequence (collides with course-onboarding terminology), Welcome Sequence, Evergreen Newsletter
+The evergreen drip sequence — a fixed series of **Shadow Newsletter Episodes** every new subscriber receives in order. A container, not a Deliverable. Part of the **Inventory**.
+_Avoid_: Drip (too generic), Onboarding Sequence (collides with course onboarding), Welcome Sequence, Evergreen Newsletter
 
 ## Channels
 
 Bidirectional streams that move material in and out. Not containers — material flows _through_ a Channel, it doesn't rest in one.
 
 **Channel**:
-A bidirectional medium through which content flows. Material arrives via a Channel and feeds Notes or Tasks; outbound material flows the other way. The same Channel typically serves both directions. Channels are characterised by what they feed: a **Task Channel**, a **Note Channel**, or both. Some are inbound-only; some are outbound-only. The "flowing" framing is deliberate: a Channel is a stream, not a static well.
-_Avoid_: Source (too static), Input (overloaded), Feed, Surface (we use Channel for both directions), Placement (marketing taint)
+A bidirectional medium through which content flows — material in (feeding Notes or Tasks via Capture), Deliverables out. Characterised by what it feeds: a **Task Channel**, a **Note Channel**, or both.
+_Avoid_: Source (too static), Input (overloaded), Feed, Surface, Placement
 
 **Task Channel**:
-A Channel whose inbound material is predominantly Task-shaped — requests, reminders, items needing action. Examples: Email, WhatsApp. Capture from a Task Channel typically yields a Task rather than a Note. A Channel can be both Task-feeding and Note-feeding (e.g. Todoist Inbox, Repo issues).
-_Avoid_: Inbox (too narrow — Todoist Inbox is one Task Channel, not the category)
+A Channel whose inbound material is predominantly Task-shaped. Examples: Email, WhatsApp.
+_Avoid_: Inbox (too narrow)
 
 **Note Channel**:
-A Channel whose inbound material is predominantly Note-shaped — ideas, observations, claims worth keeping. Examples: books, shower thoughts, others' tweets, conversations. Capture from a Note Channel yields a Note.
+A Channel whose inbound material is predominantly Note-shaped. Examples: books, shower thoughts, others' tweets, conversations.
 _Avoid_: Idea Stream, Source
 
 **Triage Queue**:
-A Channel — inbound-only, mixed Task/Note-feeding — where Captured material lands before it has a home, to be promoted into a Note or projected into a properly-placed Task. Items arrive from multiple capture routes (Pixel Watch reminders, manual typing, voice notes, forwarded emails). Captures that already know their home (a book quote written straight into a Note file, an issue filed directly to its Repo) skip the Triage Queue entirely. Currently implemented as the Todoist Inbox; distinct from the structured planning sections of Todoist, which hold already-triaged Tasks. A non-empty Triage Queue at rest is one face of **Work Dirty**.
-_Avoid_: Triage (the act, not the place), Inbox (overloaded with email), Todoist Inbox (the implementation, not the concept), Staging Surface, Holding Pen
+An inbound-only Channel where Captured material lands before it has a home, to be promoted into a Note or routed to a Task. Currently the Todoist Inbox. A non-empty Triage Queue at rest is one face of **Work Dirty**.
+_Avoid_: Triage (the act), Inbox (overloaded), Todoist Inbox (implementation), Staging Surface, Holding Pen
 
 **Repo**:
-A software repository Matt maintains — currently all open-source — acting as a bidirectional Channel: issues, PRs, and discussions flow in (Capture material); code and releases flow out. Repos also serve as concrete demo material inside Courses. A Repo requires ongoing **Repo Maintenance** (see Activities) which is necessary to keep the Channel alive but doesn't directly produce Notes or Deliverables.
+An open-source software repository, acting as a bidirectional Channel — issues/PRs/discussions in, code/releases out. Also serves as demo material inside Courses. Requires **Repo Maintenance**.
 _Avoid_: Project (too vague), Library/Tool/Package (too narrow)
 
 ## Activities
@@ -117,70 +114,69 @@ The verbs of the business — the kinds of work performed. Each instance is a **
 ### Categories
 
 **Prep**:
-Work that doesn't ship to an audience but makes shipping possible — Capture, planning, admin, Repo upkeep, anything that keeps the system functional. The repo name _mise en place_ refers to the prep state itself; everything inside this repo is the prep environment. Distinguished from **Ship**.
-_Avoid_: Backstage, Setup, Groundwork, Overhead (too pejorative — some Prep is high-leverage)
+Work that doesn't ship but makes shipping possible — Capture, planning, admin, Repo upkeep. The repo name _mise en place_ refers to the prep state itself.
+_Avoid_: Backstage, Setup, Groundwork, Overhead (too pejorative)
 
 **Ship**:
-Work that produces or releases a Deliverable — Film, Adapt, and the act of posting a Deliverable to a Channel. Distinguished from **Prep**. Used in the software-shipping sense: "shipping" includes the building, not only the final hand-off.
-_Avoid_: Service (restaurant-jargon, doesn't carry to the work itself), Production, Launch, Release
+Work that produces or releases a Deliverable — Film, Adapt, posting to a Channel. Used in the software-shipping sense: includes the building, not only the final hand-off.
+_Avoid_: Service (restaurant-jargon), Production, Launch, Release
 
 ### Prep activities
 
 **Capture**:
-The act of attending a Channel and pulling material out of it. Material yields a Note (when it's an idea worth keeping) or a Task (when it's something that needs doing); a single piece of material can produce both. Has two modes: **Opportunistic Capture** — happens whenever a Channel flows past you (a tweet, a comment, a mid-walk thought) and is grabbed in the moment; **Deliberate Capture** — a scheduled session where you go to specific Channels with intent to extract (the morning Capture & Note Work block). Both are Capture; they have different rhythms and target different Channels.
+Attending a Channel and pulling material out — yields a Note, a Task, or both. Two modes: **Opportunistic Capture** (grabbed in the moment as a Channel flows past) and **Deliberate Capture** (a scheduled session with intent to extract).
 _Avoid_: Jot, Log, Save
 
 **Repo Maintenance**:
-The ongoing work required to keep a Repo functional and usable by others — issue triage, PR review, dependency updates, releases, bug fixes. Necessary for the Repo to remain alive as a Channel, but does not directly produce Notes, Pitches, or Deliverables. An honest cost of having Repos at all; an agent prioritising business-value work should treat Maintenance as overhead rather than primary output.
+Ongoing work to keep a Repo alive as a Channel — issue triage, PR review, dependency updates, releases, bug fixes. Doesn't directly produce Notes or Deliverables; treat as overhead.
 _Avoid_: Upkeep, Admin, Housekeeping
 
 **Analytics Review**:
-A bounded daily Prep Task: read yesterday's numbers across Channels (YouTube, Twitter, AI Hero CMS, newsletter, etc.) to maintain a felt sense of what's resonating and what's not. Yields signals — most ephemeral, occasionally a Note when a pattern is striking. Time-boxed deliberately; the failure mode is **Graze**. Scope is narrow on purpose ("Analytics Review" cannot honestly be expanded to include scrolling Twitter); when other disciplined Channel-observation Tasks emerge, they get their own specific names rather than a generic umbrella.
-_Avoid_: Pulse Check (too generic, easy to rationalise Graze into), Numbers Check, Daily Read
+A bounded daily Prep Task: read yesterday's numbers across Channels to maintain a felt sense of what's resonating. Time-boxed deliberately; failure mode is **Graze**.
+_Avoid_: Pulse Check (too generic), Numbers Check, Daily Read
 
 **Inventory Check**:
-A bounded periodic Prep Task — parallel in shape to **Analytics Review** but pointed at outbound rather than inbound: walk each queue in the Inventory, assess depth against its failure mode (depletion, outgrowth, or thinness), and yield Tasks for any queue running shallow. Time-boxed; doesn't include the topping-up work itself, only the check that surfaces the need.
-_Avoid_: Stock Check, Larder Check (kitchen-cute but unfamiliar), Supply Review (corporate-mush), Depth Check
+A bounded periodic Prep Task — walk each queue in the Inventory, assess depth, yield Tasks for any queue running shallow. The outbound parallel to **Analytics Review**.
+_Avoid_: Stock Check, Larder Check, Supply Review, Depth Check
 
 **Scheduling**:
-The activity of choosing what Ships next, in what mix, against the **Revenue/Audience** split, and committing those choices to the **Deliverable Calendar**. Operates at multiple cadences (weekly tactical: which Pitch is Filmed this week; quarterly strategic: what's the Revenue/Audience ratio this quarter) — same discipline, different granularity. A Prep Task, not a Ship Task: Scheduling decides what to Ship, it doesn't Ship anything itself. Honest Scheduling depends on a healthy **Inventory** — Scheduling without an Inventory Check is wishful thinking.
+Choosing what Ships next, in what mix, against the Revenue/Audience split, and committing to the **Deliverable Calendar**. Operates weekly (tactical) and quarterly (strategic). Depends on a healthy **Inventory** to be honest rather than wishful.
 _Avoid_: Planning (too generic), Programming (broadcasting jargon), Plotting, Routing
 
 ### Ship activities
 
 **Film**:
-The act of recording a Landscape Video (or Short) using the Pitch's Hooks and Bricks as loose structure. Always the first production step — Articles and Newsletters are adapted from the transcript afterwards, never written from scratch.
-_Avoid_: Record (collides with course-video-manager terminology), Shoot
+Recording a Landscape Video (or Short) using the Pitch's Hooks and Bricks as loose structure. Always the first production step — Articles and Newsletters are adapted from the transcript afterwards.
+_Avoid_: Record (collides with course-video-manager), Shoot
 
 **Adapt**:
-The act of transforming a Landscape Video's transcript into a different-format Deliverable — an Article for the AI Hero CMS, or a Newsletter for email. Adaptation is reformatting, not re-authoring: the underlying ideas are the Pitch's; Adapt fits them to a Channel's shape.
+Transforming a Landscape Video's transcript into a different-format Deliverable — Article or Newsletter. Reformatting, not re-authoring.
 _Avoid_: Derive (too mathematical), Repurpose, Spin out
 
 ### Pathological activities
 
 **Graze**:
-Pathological Channel attention — engaging with a Channel without yielding a Note or a Task. Capture's shadow: it looks like attending to a Channel productively, but produces nothing. Boredom-triggered: Twitter scroll that captures nothing, refreshing an empty inbox, opening Stripe at 11pm. Naming this matters because an agent can recognise it ("user opened Twitter 20 minutes ago, no Capture logged — likely Graze") and Matt can recognise it in himself. Distinct from Analytics Review, which is bounded and yields signals. The Ship-triggered cousin is **Lurk**. A specific shape of **Work Dirty**.
+Pathological Channel attention — engaging with a Channel without yielding a Note or a Task. Capture's shadow. Boredom-triggered (Twitter scroll, refreshing an empty inbox, opening Stripe at 11pm). A specific shape of **Work Dirty**; the Ship-triggered cousin is **Lurk**.
 
 **Lurk**:
-A specific sub-type of Graze — compulsively checking the engagement signal on a freshly-shipped Deliverable in the early window (~first 30 min), before the signal has settled. Cross-Deliverable: applies to Tweets, Landscape Videos, Shorts alike. Powered by a noisy early signal (e.g. likes-per-minute) that the brain treats as decision-relevant when it isn't — the only honest read is the post-settling one that **Analytics Review** delivers. Lurk is the dissociated, sideline-watching quality of being a helpless observer of your own post's reception. An agent can recognise it ("user shipped a Tweet 12 min ago and has reopened Twitter 4 times — likely Lurking"). The fact that deletion remains available is what makes Lurk feel decision-relevant; it isn't. Like Graze, a specific shape of **Work Dirty**.
-_Avoid_: Hover, Echo Check, Vanity Loop, Doomscroll (implies negative content; Lurk's signal is often positive), Drift, Idle Check
+Compulsively checking the engagement signal on a freshly-shipped Deliverable in the early window (~first 30 min), before the signal has settled. The only honest read is post-settling, via **Analytics Review**. A specific shape of **Work Dirty**.
+_Avoid_: Hover, Echo Check, Vanity Loop, Doomscroll, Drift, Idle Check
 
 ## Discipline
 
 The principle that governs Prep and the transition into Ship.
 
 **Work Clean**:
-The discipline of keeping the Prep environment ordered before and during Ship — on the **inbound** side: Channel attention always yielding, the **Triage Queue** at zero. On the **outbound** side: a healthy **Inventory** (Pitch List topped up, Shadow Newsletter not outgrown) and a Pitch's Prep finished before Filming starts. Lifted from Dan Charnas's _Work Clean_, which transposes kitchen mise en place onto knowledge work; the repo name commits to the metaphor and this term names the active practice. Used as a verb ("Work Clean before filming") and as a state ("the workspace is Clean"). Charnas's wider framing (the first move, open hands, etc.) is adopted wholesale even where not yet operationalised here.
+The discipline of keeping the Prep environment ordered — **inbound**: Channel attention always yielding, **Triage Queue** at zero; **outbound**: a healthy **Inventory** and a Pitch's Prep finished before Filming. Lifted from Dan Charnas's _Work Clean_. Used as verb and state.
 _Avoid_: Mise (collides with the repo name), Stationed, Clean Hands (too narrow), Tidy
 
 **Work Dirty**:
 The umbrella failure mode — failing to Work Clean. Concrete shapes:
 
-- **Inbound**: dirty Channel attention (**Graze**, and its post-Ship sibling **Lurk**); non-empty **Triage Queue** at rest
-- **Outbound**: shallow **Inventory** at **Scheduling** time (a queue is depleted or outgrown when Ship arrives); a Pitch whose Prep is incomplete when Ship starts
+- **Inbound**: dirty Channel attention (**Graze**, **Lurk**); non-empty **Triage Queue** at rest
+- **Outbound**: shallow **Inventory** at **Scheduling** time; a Pitch whose Prep is incomplete when Ship starts
 
-Naming the umbrella connects existing pathology vocabulary (Graze, Lurk) to the positive principle and makes it possible to ask "in what shape am I Working Dirty right now?" rather than diagnosing each pathology separately.
-_Avoid_: Working Messy, Slop, Disorganised, In the Weeds (overloaded with restaurant jargon, opposite valence to Charnas's usage)
+_Avoid_: Working Messy, Slop, Disorganised, In the Weeds (restaurant jargon, opposite valence)
 
 ## Relationships
 

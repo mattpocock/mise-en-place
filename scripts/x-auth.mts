@@ -9,9 +9,9 @@ import {
   generateCodeVerifier,
   REDIRECT_PORT,
   REDIRECT_URI,
-} from "./x-lib/oauth.mts";
-import { getMe } from "./x-lib/x-api.mts";
-import { saveTokens } from "./x-lib/storage.mts";
+} from "./lib/oauth.mts";
+import { getMe } from "./lib/x-api.mts";
+import { saveTokens } from "./lib/storage.mts";
 
 const clientId = process.env.X_CLIENT_ID;
 const clientSecret = process.env.X_CLIENT_SECRET;

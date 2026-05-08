@@ -19,14 +19,12 @@ export function renderMention(
     `── @${mention.author_username} [${mention.id}]${marker} ──`,
   );
 
-  if (thread.length > 0) {
-    for (const node of thread) {
-      const handle = node.author_username ?? "unknown";
-      lines.push(`  @${handle}: ${node.text}`);
-    }
-  } else {
-    lines.push(`  ${mention.text}`);
+  const parents = thread.filter((node) => node.id !== mention.id);
+  for (const node of parents) {
+    const handle = node.author_username ?? "unknown";
+    lines.push(`  @${handle}: ${node.text}`);
   }
+  lines.push(`  @${mention.author_username}: ${mention.text}`);
 
   return lines.join("\n");
 }

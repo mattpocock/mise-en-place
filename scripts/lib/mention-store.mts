@@ -49,7 +49,8 @@ export class JsonFileMentionStore implements MentionStore {
 
   async upsertOpen(mention: StoredMention): Promise<void> {
     const data = await this.load();
-    if (data[mention.id]) return;
+    const existing = data[mention.id];
+    if (existing && existing.closed_at !== null) return;
     data[mention.id] = { ...mention, closed_at: null };
     await this.save(data);
   }

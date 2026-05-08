@@ -31,11 +31,14 @@ const timestamp = new Date().toISOString();
 const taskContent = `[smoke test, safe to delete] ${timestamp}`;
 
 console.log(`\n--- Creating test task in #Planning (no section) ---`);
-const task = await api.addTask({
+const task = await api.addTriageQueueEntry({
   content: taskContent,
-  projectId: planning.id,
+  planningProjectId: planning.id,
 });
 console.log(`  Created task [${task.id}]: "${task.content}"`);
 console.log(`  Project: ${planning.name} (${planning.id})`);
 console.log(`  Section: none (Triage Queue)`);
-console.log(`\nSmoke test passed. Delete the task in Todoist or via API: DELETE /rest/v2/tasks/${task.id}`);
+
+console.log(`\n--- Cleaning up: deleting test task [${task.id}] ---`);
+await api.deleteTask(task.id);
+console.log(`  Deleted. Smoke test passed.`);

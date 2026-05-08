@@ -27,8 +27,13 @@ export interface TodoistApi {
   addTask(args: {
     content: string;
     projectId: string;
-    sectionId?: string;
+    sectionId: string;
   }): Promise<TodoistTask>;
+  addTriageQueueEntry(args: {
+    content: string;
+    planningProjectId: string;
+  }): Promise<TodoistTask>;
+  deleteTask(taskId: string): Promise<void>;
 }
 
 async function todoistGet<T>(path: string, token: string, params?: Record<string, string>): Promise<T> {
@@ -71,14 +76,35 @@ export function createTodoistApi(token: string): TodoistApi {
     },
 
     async addTask(args) {
-      const payload: Record<string, unknown> = {
+      if (!args.sectionId) {
+        throw new Error(
+          "addTask requires a sectionId. To create a Triage Queue entry in #Planning with no section, use addTriageQueueEntry instead (see ADR-0001).",
+        );
+      }
+      return todoistPost<TodoistTask>("/tasks", token, {
         content: args.content,
         project_id: args.projectId,
-      };
-      if (args.sectionId !== undefined) {
-        payload.section_id = args.sectionId;
+        section_id: args.sectionId,
+      });
+    },
+
+    async addTriageQueueEntry(args) {
+      return todoistPost<TodoistTask>("/tasks", token, {
+        content: args.content,
+        project_id: args.planningProjectId,
+      });
+    },
+
+    async deleteTask(taskId: string) {
+      const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        throw new Error(
+          `Todoist API DELETE /tasks/${taskId} failed: ${res.status} ${await res.text()}`,
+        );
       }
-      return todoistPost<TodoistTask>("/tasks", token, payload);
     },
   };
 }

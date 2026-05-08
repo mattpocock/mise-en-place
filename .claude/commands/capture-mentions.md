@@ -24,7 +24,7 @@ Before processing the first mention, set up Todoist for the session:
 1. Load the Todoist API token from the environment (`TODOIST_API_TOKEN`).
 2. Call `TodoistApi.listProjects()` once and cache the result for the entire session. You will need the `#Planning` project's ID for Triage Queue entries.
 
-Do this by running a one-off Node script inline or via bash — use the `createTodoistApi` and `getTodoistToken` functions from `scripts/lib/todoist-api.mts`.
+Do this by running a one-off Node script inline or via bash — use the `createTodoistApi` and `getTodoistToken` functions from `scripts/lib/todoist-api.mts`. **Always invoke Node with `--env-file=.env`** so `TODOIST_API_TOKEN` is loaded (e.g. `node --env-file=.env -e '...'`).
 
 ## 3. Loop — one mention at a time, oldest-first
 
@@ -84,7 +84,7 @@ Use the Todoist API by running inline Node against `scripts/lib/todoist-api.mts`
 Create a Todoist task in the `#Planning` project with **no section**. This is the Triage Queue convention from ADR-0001.
 
 1. Help the user draft brief task content from the mention.
-2. Call `TodoistApi.addTask({ content, projectId: <planning_project_id> })` — no `sectionId`.
+2. Call `TodoistApi.addTriageQueueEntry({ content, planningProjectId: <planning_project_id> })`. (The plain `addTask` requires a `sectionId` and will refuse a sectionless write — that refusal is the ADR-0001 invariant encoded in the API layer.)
 
 #### Action: Dismiss
 

@@ -100,8 +100,8 @@ A Channel whose inbound material is predominantly Note-shaped. Examples: books, 
 _Avoid_: Idea Stream, Source
 
 **Triage Queue**:
-An inbound-only Channel where Captured material lands before it has a home, to be promoted into a Note or routed to a Task. Currently the Todoist Inbox. A non-empty Triage Queue at rest is one face of **Work Dirty**.
-_Avoid_: Triage (the act), Inbox (overloaded), Todoist Inbox (implementation), Staging Surface, Holding Pen
+An inbound-only Channel where Captured material lands before it has a home, to be promoted into a Note or routed to a Task. Currently the unsectioned area of Todoist's **#Planning** project — items in `#Planning` that haven't been assigned to a section. A non-empty Triage Queue at rest is one face of **Work Dirty**.
+_Avoid_: Triage (the act), Inbox (overloaded), Todoist Inbox (implementation; not actually the Inbox), Staging Surface, Holding Pen
 
 **Repo**:
 An open-source software repository, acting as a bidirectional Channel — issues/PRs/discussions in, code/releases out. Also serves as demo material inside Courses. Requires **Repo Maintenance**.

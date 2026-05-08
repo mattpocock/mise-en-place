@@ -11,6 +11,7 @@
     "sandcastle": "npx tsx ./.sandcastle/main.ts"
   },
   "dependencies": {
+    "@ai-hero/sandcastle": "^0.5.10",
     "@hono/node-server": "^1.13.0",
     "@inquirer/prompts": "^7.2.1",
     "hono": "^4.6.0",

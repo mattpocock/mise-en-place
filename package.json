@@ -7,6 +7,7 @@
     "invoice:pdf": "node scripts/invoice-to-pdf.mts",
     "x:auth": "node --env-file=.env scripts/x-auth.mts",
     "x:fetch-mentions": "node --env-file=.env scripts/x-fetch-mentions.mts",
+    "x:list-open": "node scripts/list-open-mentions.mts",
     "test": "node --test 'scripts/**/*.test.mts'",
     "todoist:smoke": "node --env-file=.env scripts/todoist-smoke.mts",
     "typecheck": "tsc --noEmit",

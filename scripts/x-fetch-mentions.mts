@@ -13,14 +13,14 @@ import {
   saveState,
   loadTweetCache,
   saveTweetCache,
-  type CachedTweet,
   type TweetCache,
 } from "./lib/storage.mts";
 import {
   JsonFileMentionStore,
   type StoredMention,
 } from "./lib/mention-store.mts";
-import { renderMention, type ThreadNode } from "./lib/mention-renderer.mts";
+import { renderMention } from "./lib/mention-renderer.mts";
+import { buildThread } from "./lib/thread-builder.mts";
 
 const STORE_PATH = "data/x-mentions.json";
 const MAX_THREAD_DEPTH = 30;
@@ -96,7 +96,7 @@ if (openSet.length === 0) {
 } else {
   console.log(`\n── Open mentions (${openSet.length}) ──\n`);
   for (const mention of openSet) {
-    const thread = buildThread(mention.id);
+    const thread = buildThread(mention.id, cache);
     const isNew = fetchedIds.has(mention.id);
     console.log(renderMention(mention, thread, isNew));
     console.log("");
@@ -144,25 +144,3 @@ async function resolveParentChains(): Promise<number> {
   return added;
 }
 
-function buildThread(leafId: string): ThreadNode[] {
-  const chain: ThreadNode[] = [];
-  const seen = new Set<string>();
-  let currentId: string | null = leafId;
-  while (currentId !== null && !seen.has(currentId)) {
-    seen.add(currentId);
-    const t: CachedTweet | undefined = cache[currentId];
-    if (!t) break;
-    const parentRef: ReferencedTweet | undefined = t.referenced_tweets?.find(
-      (r: ReferencedTweet) => r.type === "replied_to",
-    );
-    chain.push({
-      id: t.id,
-      author_username: t.author?.username ?? null,
-      author_name: t.author?.name ?? null,
-      text: t.text,
-      created_at: t.created_at,
-    });
-    currentId = parentRef ? parentRef.id : null;
-  }
-  return chain.reverse();
-}

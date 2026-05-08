@@ -5,7 +5,7 @@ You are driving an interactive **Capture** session on the Twitter **Channel**. Y
 Run the fetch script to pull new mentions and display the open set:
 
 ```
-node --experimental-strip-types scripts/x-fetch-mentions.mts
+node --env-file=.env scripts/x-fetch-mentions.mts
 ```
 
 Read the compact-text output from stdout. Each mention block looks like:
@@ -95,7 +95,7 @@ No side effects. Move directly to closing the mention.
 After the action's side effects have succeeded, close the mention:
 
 ```
-node --experimental-strip-types scripts/close-mention.mts <mention_id>
+node scripts/close-mention.mts <mention_id>
 ```
 
 **Only close after the side effect succeeds.** If a vault write fails, or a Todoist API call errors, surface the error to the user and do **not** close the mention — it stays open so they can retry on the next pass.

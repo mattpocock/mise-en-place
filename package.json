@@ -7,7 +7,8 @@
     "invoice:pdf": "node scripts/invoice-to-pdf.mts",
     "x:auth": "node --env-file=.env scripts/x-auth.mts",
     "x:fetch-mentions": "node --env-file=.env scripts/x-fetch-mentions.mts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "sandcastle": "npx tsx ./.sandcastle/main.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.13.0",

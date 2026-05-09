@@ -1,30 +1,55 @@
-import type { StoredMention } from "./mention-store.mts";
+import type {
+  MentionThread,
+  NodeStatus,
+  ThreadTreeNode,
+} from "./thread-builder.mts";
 
-export type ThreadNode = {
-  id: string;
-  author_username: string | null;
-  author_name: string | null;
-  text: string;
-  created_at: string;
-};
+const DIM = "\x1b[2m";
+const BOLD = "\x1b[1m";
+const RESET = "\x1b[0m";
+const YELLOW = "\x1b[33m";
+const GREEN = "\x1b[32m";
 
-export function renderMention(
-  mention: StoredMention,
-  thread: ThreadNode[],
-  isNew: boolean,
-): string {
-  const lines: string[] = [];
-  const marker = isNew ? " ★ new" : "";
-  lines.push(
-    `── @${mention.author_username} [${mention.id}]${marker} ──`,
-  );
+function statusMarker(s: NodeStatus): string {
+  if (s === "new") return ` ${YELLOW}★ new${RESET}`;
+  if (s === "open") return ` ${GREEN}● open${RESET}`;
+  return "";
+}
 
-  const parents = thread.filter((node) => node.id !== mention.id);
-  for (const node of parents) {
-    const handle = node.author_username ?? "unknown";
-    lines.push(`  @${handle}: ${node.text}`);
+function flattenText(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function nodeLine(node: ThreadTreeNode): string {
+  if (!node.tweet) {
+    return `${DIM}(unresolved tweet ${node.id} — deleted, protected, or out of reach)${RESET}`;
   }
-  lines.push(`  @${mention.author_username}: ${mention.text}`);
+  const handle = node.tweet.author?.username ?? "unknown";
+  const text = flattenText(node.tweet.text);
+  return `${BOLD}@${handle}${RESET}: ${text}${statusMarker(node.status)} ${DIM}[${node.id}]${RESET}`;
+}
 
-  return lines.join("\n");
+function renderNode(
+  node: ThreadTreeNode,
+  prefix: string,
+  isLast: boolean,
+  isRoot: boolean,
+  out: string[],
+): void {
+  if (isRoot) {
+    out.push(nodeLine(node));
+  } else {
+    const branch = isLast ? "└─ " : "├─ ";
+    out.push(prefix + branch + nodeLine(node));
+  }
+  const childPrefix = isRoot ? "" : prefix + (isLast ? "   " : "│  ");
+  node.children.forEach((c, i) => {
+    renderNode(c, childPrefix, i === node.children.length - 1, false, out);
+  });
+}
+
+export function renderThread(thread: MentionThread): string {
+  const out: string[] = [];
+  renderNode(thread.root, "", true, true, out);
+  return out.join("\n");
 }

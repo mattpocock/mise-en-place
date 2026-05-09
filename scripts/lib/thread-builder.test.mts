@@ -1,7 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { buildThread } from "./thread-builder.mts";
+import { groupIntoMentionThreads } from "./thread-builder.mts";
 import type { TweetCache, CachedTweet } from "./storage.mts";
+import type { StoredMention } from "./mention-store.mts";
 
 function makeCachedTweet(
   overrides: Partial<CachedTweet> & { id: string },
@@ -21,88 +22,152 @@ function makeCachedTweet(
   };
 }
 
-describe("buildThread", () => {
-  it("returns empty array when leaf id is not in cache", () => {
-    const cache: TweetCache = {};
-    const result = buildThread("999", cache);
-    assert.deepEqual(result, []);
+function makeMention(overrides: Partial<StoredMention> & { id: string }): StoredMention {
+  return {
+    fetched_at: "2026-05-08T10:00:00.000Z",
+    closed_at: null,
+    text: "tweet",
+    author_username: "alice",
+    author_name: "Alice",
+    created_at: "2026-05-08T09:00:00.000Z",
+    parent_ref_id: null,
+    ...overrides,
+  };
+}
+
+describe("groupIntoMentionThreads", () => {
+  it("returns empty when there are no open mentions", () => {
+    const threads = groupIntoMentionThreads([], {}, new Set());
+    assert.deepEqual(threads, []);
   });
 
-  it("returns single node for tweet with no parent", () => {
-    const cache: TweetCache = {
-      "1": makeCachedTweet({ id: "1", text: "Hello world" }),
-    };
-    const result = buildThread("1", cache);
-    assert.equal(result.length, 1);
-    assert.equal(result[0]!.id, "1");
-    assert.equal(result[0]!.author_username, "alice");
-    assert.equal(result[0]!.text, "Hello world");
-  });
-
-  it("returns full chain for a 3-deep thread, root-first", () => {
+  it("groups two mentions sharing a root into one thread", () => {
     const cache: TweetCache = {
       "1": makeCachedTweet({ id: "1", text: "Root" }),
       "2": makeCachedTweet({
         id: "2",
-        text: "Reply",
-        author_id: "a2",
-        author: { id: "a2", username: "bob", name: "Bob", verified: false },
+        text: "Reply A",
+        created_at: "2026-05-08T10:00:00.000Z",
         referenced_tweets: [{ type: "replied_to", id: "1" }],
       }),
       "3": makeCachedTweet({
         id: "3",
-        text: "Deep reply",
-        author_id: "a3",
-        author: { id: "a3", username: "carol", name: "Carol", verified: false },
-        referenced_tweets: [{ type: "replied_to", id: "2" }],
+        text: "Reply B",
+        created_at: "2026-05-08T11:00:00.000Z",
+        referenced_tweets: [{ type: "replied_to", id: "1" }],
       }),
     };
-    const result = buildThread("3", cache);
-    assert.equal(result.length, 3);
-    assert.equal(result[0]!.id, "1");
-    assert.equal(result[0]!.author_username, "alice");
-    assert.equal(result[1]!.id, "2");
-    assert.equal(result[1]!.author_username, "bob");
-    assert.equal(result[2]!.id, "3");
-    assert.equal(result[2]!.author_username, "carol");
+    const mentions = [
+      makeMention({ id: "2", created_at: "2026-05-08T10:00:00.000Z" }),
+      makeMention({ id: "3", created_at: "2026-05-08T11:00:00.000Z" }),
+    ];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0]!.rootKey, "1");
+    assert.equal(threads[0]!.rootResolved, true);
+    assert.equal(threads[0]!.root.id, "1");
+    assert.equal(threads[0]!.root.children.length, 2);
+    // siblings sorted chronologically
+    assert.equal(threads[0]!.root.children[0]!.id, "2");
+    assert.equal(threads[0]!.root.children[1]!.id, "3");
   });
 
-  it("stops at missing parent in cache", () => {
+  it("uses unresolved parent id as root key when chain dies at a gap", () => {
     const cache: TweetCache = {
       "2": makeCachedTweet({
         id: "2",
         text: "Reply to missing",
         referenced_tweets: [{ type: "replied_to", id: "1" }],
       }),
-    };
-    const result = buildThread("2", cache);
-    assert.equal(result.length, 1);
-    assert.equal(result[0]!.id, "2");
-  });
-
-  it("handles circular references without infinite loop", () => {
-    const cache: TweetCache = {
-      "1": makeCachedTweet({
-        id: "1",
-        text: "A",
-        referenced_tweets: [{ type: "replied_to", id: "2" }],
-      }),
-      "2": makeCachedTweet({
-        id: "2",
-        text: "B",
+      "3": makeCachedTweet({
+        id: "3",
+        text: "Another reply to missing",
         referenced_tweets: [{ type: "replied_to", id: "1" }],
       }),
     };
-    const result = buildThread("1", cache);
-    assert.equal(result.length, 2);
+    const mentions = [makeMention({ id: "2" }), makeMention({ id: "3" })];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0]!.rootKey, "1");
+    assert.equal(threads[0]!.rootResolved, false);
+    assert.equal(threads[0]!.root.tweet, null);
+    assert.equal(threads[0]!.root.children.length, 2);
   });
 
-  it("uses null for author fields when author is missing", () => {
+  it("marks newly fetched mentions as 'new' and existing opens as 'open'", () => {
     const cache: TweetCache = {
-      "1": makeCachedTweet({ id: "1", author: null }),
+      "1": makeCachedTweet({ id: "1" }),
+      "2": makeCachedTweet({
+        id: "2",
+        referenced_tweets: [{ type: "replied_to", id: "1" }],
+      }),
     };
-    const result = buildThread("1", cache);
-    assert.equal(result[0]!.author_username, null);
-    assert.equal(result[0]!.author_name, null);
+    const mentions = [makeMention({ id: "2" })];
+    const threads = groupIntoMentionThreads(
+      mentions,
+      cache,
+      new Set(["2"]),
+    );
+    assert.equal(threads[0]!.root.children[0]!.status, "new");
+
+    const threads2 = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads2[0]!.root.children[0]!.status, "open");
+  });
+
+  it("ancestors that are not open mentions are marked 'context'", () => {
+    const cache: TweetCache = {
+      "1": makeCachedTweet({ id: "1" }),
+      "2": makeCachedTweet({
+        id: "2",
+        referenced_tweets: [{ type: "replied_to", id: "1" }],
+      }),
+    };
+    const mentions = [makeMention({ id: "2" })];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads[0]!.root.status, "context");
+  });
+
+  it("orders threads by newest open mention first", () => {
+    const cache: TweetCache = {
+      "1": makeCachedTweet({ id: "1" }),
+      "2": makeCachedTweet({
+        id: "2",
+        referenced_tweets: [{ type: "replied_to", id: "1" }],
+      }),
+      "10": makeCachedTweet({ id: "10" }),
+      "20": makeCachedTweet({
+        id: "20",
+        referenced_tweets: [{ type: "replied_to", id: "10" }],
+      }),
+    };
+    const mentions = [
+      makeMention({ id: "2", created_at: "2026-05-08T09:00:00.000Z" }),
+      makeMention({ id: "20", created_at: "2026-05-08T11:00:00.000Z" }),
+    ];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads.length, 2);
+    assert.equal(threads[0]!.rootKey, "10");
+    assert.equal(threads[1]!.rootKey, "1");
+  });
+
+  it("prunes branches that don't lead to an open mention", () => {
+    // root has two replies; only one has an open mention under it
+    const cache: TweetCache = {
+      "1": makeCachedTweet({ id: "1", text: "Root" }),
+      "2": makeCachedTweet({
+        id: "2",
+        text: "Reply on the open path",
+        referenced_tweets: [{ type: "replied_to", id: "1" }],
+      }),
+      "3": makeCachedTweet({
+        id: "3",
+        text: "Unrelated sibling — never mentioned",
+        referenced_tweets: [{ type: "replied_to", id: "1" }],
+      }),
+    };
+    const mentions = [makeMention({ id: "2" })];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads[0]!.root.children.length, 1);
+    assert.equal(threads[0]!.root.children[0]!.id, "2");
   });
 });

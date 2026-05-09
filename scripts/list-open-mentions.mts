@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import { JsonFileMentionStore } from "./lib/mention-store.mts";
-import { renderMention } from "./lib/mention-renderer.mts";
-import { buildThread } from "./lib/thread-builder.mts";
+import { renderThread } from "./lib/mention-renderer.mts";
+import { groupIntoMentionThreads } from "./lib/thread-builder.mts";
 import type { TweetCache } from "./lib/storage.mts";
 
 const STORE_PATH = process.env.MENTION_STORE_PATH ?? "data/x-mentions.json";
@@ -23,10 +23,12 @@ const openSet = await store.listOpen();
 if (openSet.length === 0) {
   console.log("No open mentions.");
 } else {
-  console.log(`── Open mentions (${openSet.length}) ──\n`);
-  for (const mention of openSet) {
-    const thread = buildThread(mention.id, cache);
-    console.log(renderMention(mention, thread, false));
+  const threads = groupIntoMentionThreads(openSet, cache, new Set());
+  console.log(
+    `── ${threads.length} mention thread(s), ${openSet.length} open mention(s) ──\n`,
+  );
+  for (const thread of threads) {
+    console.log(renderThread(thread));
     console.log("");
   }
 }

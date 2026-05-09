@@ -59,6 +59,10 @@ _Avoid_: Drop, Step, Installment, Beat
 The selling layer of a Deliverable on a Channel — title, thumbnail, framing copy. Derived from the Pitch's Hook(s). Core Packaging lives on the Pitch; per-Channel variants are produced at ship time.
 _Avoid_: Marketing copy, Promo, Metadata
 
+**Mention Thread**:
+A rooted tree of cached tweets on the Twitter Channel that contains one or more open **Mentions**. Grouped by walking up to the topmost ancestor (or the topmost unresolved parent id, if the chain dies at a missing tweet). Pruned to only the nodes on the path from root to an open Mention. Used by the fetch-mentions Capture pipeline to present a Twitter-shaped conversation view rather than a flat list.
+_Avoid_: Conversation (overloaded by Twitter's own API term), Mention Group, Reply Chain
+
 **Task**:
 A discrete, schedulable unit of work — a Todoist row. Every Activity instance is a Task.
 _Avoid_: To-Do, Action, Errand, Chore, Job

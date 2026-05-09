@@ -1,88 +1,179 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { renderMention, type ThreadNode } from "./mention-renderer.mts";
-import type { StoredMention } from "./mention-store.mts";
+import { renderThread } from "./mention-renderer.mts";
+import type { MentionThread, ThreadTreeNode } from "./thread-builder.mts";
+import type { CachedTweet } from "./storage.mts";
 
-function makeMention(overrides: Partial<StoredMention> = {}): StoredMention {
+function makeCachedTweet(
+  overrides: Partial<CachedTweet> & { id: string },
+): CachedTweet {
   return {
-    id: "100",
-    fetched_at: "2026-05-08T10:00:00.000Z",
-    closed_at: null,
-    text: "Hey @matt great video!",
-    author_username: "alice",
-    author_name: "Alice Johnson",
+    text: "tweet text",
+    author_id: "a1",
     created_at: "2026-05-08T09:00:00.000Z",
-    parent_ref_id: null,
+    public_metrics: {
+      retweet_count: 0,
+      reply_count: 0,
+      like_count: 0,
+      quote_count: 0,
+    },
+    author: { id: "a1", username: "alice", name: "Alice", verified: false },
     ...overrides,
   };
 }
 
-function makeThread(nodes: Partial<ThreadNode>[]): ThreadNode[] {
-  return nodes.map((n, i) => ({
-    id: String(i + 1),
-    author_username: "user" + i,
-    author_name: "User " + i,
-    text: "tweet " + i,
-    created_at: "2026-05-08T09:00:00.000Z",
-    ...n,
-  }));
+function makeNode(
+  overrides: Partial<ThreadTreeNode> & { id: string },
+): ThreadTreeNode {
+  return {
+    tweet: makeCachedTweet({ id: overrides.id }),
+    status: "context",
+    children: [],
+    ...overrides,
+  };
 }
 
-describe("renderMention", () => {
-  it("renders a single mention with no thread", () => {
-    const mention = makeMention();
-    const output = renderMention(mention, [], false);
-    assert.ok(output.includes("@alice"), "should include author handle");
-    assert.ok(
-      output.includes("Hey @matt great video!"),
-      "should include mention text",
+function stripAnsi(s: string): string {
+  return s.replace(/\x1b\[\d+m/g, "");
+}
+
+function makeThread(root: ThreadTreeNode): MentionThread {
+  return {
+    rootKey: root.id,
+    rootResolved: root.tweet !== null,
+    newestOpenAt: "2026-05-08T10:00:00.000Z",
+    root,
+  };
+}
+
+describe("renderThread", () => {
+  it("renders a single-node thread (root only)", () => {
+    const thread = makeThread(
+      makeNode({
+        id: "1",
+        tweet: makeCachedTweet({ id: "1", text: "Hello world" }),
+      }),
     );
-    assert.ok(!output.includes("★ new"), "should not have new marker");
+    const out = stripAnsi(renderThread(thread));
+    assert.ok(out.includes("@alice"));
+    assert.ok(out.includes("Hello world"));
+    assert.ok(out.includes("[1]"));
   });
 
-  it("renders a mention with ★ new marker when isNew is true", () => {
-    const mention = makeMention();
-    const output = renderMention(mention, [], true);
-    assert.ok(output.includes("★ new"), "should have new marker");
+  it("renders a parent with two sibling children using box-drawing", () => {
+    const thread = makeThread(
+      makeNode({
+        id: "1",
+        tweet: makeCachedTweet({ id: "1", text: "Root" }),
+        children: [
+          makeNode({
+            id: "2",
+            tweet: makeCachedTweet({
+              id: "2",
+              text: "First child",
+              author: {
+                id: "b",
+                username: "bob",
+                name: "Bob",
+                verified: false,
+              },
+            }),
+            status: "open",
+          }),
+          makeNode({
+            id: "3",
+            tweet: makeCachedTweet({
+              id: "3",
+              text: "Second child",
+              author: {
+                id: "c",
+                username: "carol",
+                name: "Carol",
+                verified: false,
+              },
+            }),
+            status: "new",
+          }),
+        ],
+      }),
+    );
+    const out = stripAnsi(renderThread(thread));
+    assert.ok(out.includes("├─ "), "first sibling uses ├─");
+    assert.ok(out.includes("└─ "), "last sibling uses └─");
+    assert.ok(out.includes("● open"), "open marker present");
+    assert.ok(out.includes("★ new"), "new marker present");
+    assert.ok(out.includes("@bob"));
+    assert.ok(out.includes("@carol"));
   });
 
-  it("does not include ★ new marker when isNew is false", () => {
-    const mention = makeMention();
-    const output = renderMention(mention, [], false);
-    assert.ok(!output.includes("★ new"), "should not have new marker");
+  it("renders nested children with continuation prefix │", () => {
+    const thread = makeThread(
+      makeNode({
+        id: "1",
+        tweet: makeCachedTweet({ id: "1" }),
+        children: [
+          makeNode({
+            id: "2",
+            tweet: makeCachedTweet({ id: "2" }),
+            children: [
+              makeNode({
+                id: "3",
+                tweet: makeCachedTweet({ id: "3" }),
+                status: "new",
+              }),
+            ],
+          }),
+          makeNode({ id: "4", tweet: makeCachedTweet({ id: "4" }) }),
+        ],
+      }),
+    );
+    const out = stripAnsi(renderThread(thread));
+    // child of non-last sibling should be prefixed with │
+    assert.ok(/│  └─ /.test(out), "continuation prefix used for nested child");
   });
 
-  it("renders a mention with a 3-deep thread", () => {
-    const mention = makeMention({ id: "3", parent_ref_id: "2" });
-    const thread = makeThread([
-      { id: "1", author_username: "bob", text: "Original post" },
-      { id: "2", author_username: "carol", text: "First reply" },
-      {
-        id: "3",
-        author_username: "alice",
-        text: "Hey @matt great video!",
+  it("renders an unresolved root as a gap placeholder", () => {
+    const thread: MentionThread = {
+      rootKey: "999",
+      rootResolved: false,
+      newestOpenAt: "2026-05-08T10:00:00.000Z",
+      root: {
+        id: "999",
+        tweet: null,
+        status: "context",
+        children: [
+          {
+            id: "2",
+            tweet: makeCachedTweet({ id: "2", text: "Hangs from gap" }),
+            status: "new",
+            children: [],
+          },
+        ],
       },
-    ]);
-    const output = renderMention(mention, thread, false);
-    assert.ok(output.includes("@bob"), "should include root author");
-    assert.ok(output.includes("Original post"), "should include root text");
-    assert.ok(output.includes("@carol"), "should include mid-thread author");
-    assert.ok(output.includes("First reply"), "should include mid-thread text");
-    assert.ok(output.includes("@alice"), "should include mention author");
+    };
+    const out = stripAnsi(renderThread(thread));
+    assert.ok(out.includes("unresolved tweet 999"));
+    assert.ok(out.includes("Hangs from gap"));
   });
 
-  it("renders a mention with a missing parent in cache", () => {
-    const mention = makeMention({ parent_ref_id: "999" });
-    const output = renderMention(mention, [], false);
-    assert.ok(
-      output.includes("Hey @matt great video!"),
-      "should still render the mention text",
+  it("flattens multi-line tweet text", () => {
+    const thread = makeThread(
+      makeNode({
+        id: "1",
+        tweet: makeCachedTweet({ id: "1", text: "line one\n\nline two" }),
+      }),
     );
+    const out = stripAnsi(renderThread(thread));
+    assert.ok(out.includes("line one line two"));
+    assert.ok(!out.includes("line one\n"));
   });
 
-  it("includes the mention id", () => {
-    const mention = makeMention({ id: "42" });
-    const output = renderMention(mention, [], false);
-    assert.ok(output.includes("42"), "should include the mention id");
+  it("emits no marker for context nodes", () => {
+    const thread = makeThread(
+      makeNode({ id: "1", tweet: makeCachedTweet({ id: "1" }) }),
+    );
+    const out = stripAnsi(renderThread(thread));
+    assert.ok(!out.includes("★ new"));
+    assert.ok(!out.includes("● open"));
   });
 });

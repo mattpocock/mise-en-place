@@ -19,8 +19,8 @@ import {
   JsonFileMentionStore,
   type StoredMention,
 } from "./lib/mention-store.mts";
-import { renderMention } from "./lib/mention-renderer.mts";
-import { buildThread } from "./lib/thread-builder.mts";
+import { renderThread } from "./lib/mention-renderer.mts";
+import { groupIntoMentionThreads } from "./lib/thread-builder.mts";
 
 const STORE_PATH = "data/x-mentions.json";
 const MAX_THREAD_DEPTH = 30;
@@ -90,15 +90,23 @@ if (newestId) {
   console.log(`Updated last_seen_mention_id → ${newestId}`);
 }
 
+const implicitlyClosed = await reconcileImplicitCloses();
+if (implicitlyClosed > 0) {
+  console.log(
+    `Implicitly closed ${implicitlyClosed} mention(s) already replied to by @${tokens.username}.`,
+  );
+}
+
 const openSet = await store.listOpen();
 if (openSet.length === 0) {
   console.log("\nNo open mentions.");
 } else {
-  console.log(`\n── Open mentions (${openSet.length}) ──\n`);
-  for (const mention of openSet) {
-    const thread = buildThread(mention.id, cache);
-    const isNew = fetchedIds.has(mention.id);
-    console.log(renderMention(mention, thread, isNew));
+  const threads = groupIntoMentionThreads(openSet, cache, fetchedIds);
+  console.log(
+    `\n── ${threads.length} mention thread(s), ${openSet.length} open mention(s) ──\n`,
+  );
+  for (const thread of threads) {
+    console.log(renderThread(thread));
     console.log("");
   }
 }
@@ -144,3 +152,20 @@ async function resolveParentChains(): Promise<number> {
   return added;
 }
 
+async function reconcileImplicitCloses(): Promise<number> {
+  const repliedToBySelf = new Set<string>();
+  for (const t of Object.values(cache)) {
+    if (t.author?.username !== tokens.username) continue;
+    for (const ref of t.referenced_tweets ?? []) {
+      if (ref.type === "replied_to") repliedToBySelf.add(ref.id);
+    }
+  }
+  let closed = 0;
+  for (const m of await store.listOpen()) {
+    if (repliedToBySelf.has(m.id)) {
+      await store.close(m.id);
+      closed++;
+    }
+  }
+  return closed;
+}

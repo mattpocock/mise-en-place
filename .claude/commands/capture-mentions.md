@@ -1,4 +1,4 @@
-You are driving an interactive **Capture** session on the Twitter **Channel**. Your job is to walk the user through their open Twitter mentions one at a time, proposing an action for each, and executing the chosen action. Domain language follows CONTEXT.md.
+You are driving a **batch Capture** session on the Twitter **Channel**. Your job is to pull 100 open mentions at a time, group them into proposed actions, get the user's approval on the whole plan, then execute it. Domain language follows CONTEXT.md.
 
 ## 1. Fetch
 
@@ -8,126 +8,78 @@ First, get the size of the open set:
 npm run x:mentions -- --count
 ```
 
-This prints `<N> mentions, <M> threads`. Fetching from the X API happens implicitly here, gated by a 60s TTL on the local cache — you don't need a separate fetch step.
+This prints `<N> mentions, <M> threads`. Fetching from the X API happens implicitly here, gated by a 60s TTL on the local cache.
 
 If `N` is 0, tell the user there are no mentions to process and stop.
 
-Then load a chewable batch of 10 mentions to start the session:
+Then load the batch:
 
 ```
-npm run x:mentions -- --limit 10 --no-fetch
+npm run x:mentions -- --limit 100
 ```
 
-`--no-fetch` is safe here because the previous `--count` call already refreshed the cache. Use `--no-fetch` on every read after the first to avoid redundant API calls within the session.
+When the batch is processed and closed, pull the next 100 the same way — closed mentions drop out of the open set, so `--offset 0` keeps surfacing the oldest unprocessed ones.
 
-When the batch is exhausted, pull the next 10 the same way — closed mentions drop out of the open set, so `--offset 0` keeps surfacing the oldest unprocessed ones. Only widen the limit or restart fetching (drop `--no-fetch`) if the user pauses long enough that the cache might be stale (>60s) or asks you to re-pull.
+## 2. Group the batch
 
-## 2. Session setup
+Read every mention in the batch and assign each to one of five groups:
 
-Before processing the first mention, set up Todoist for the session:
+- **Interesting** — original thought, insight, claim, or observation worth considering.
+- **Testimonial** — praise worthy of being included in a testimonial on my website. Usually only of course material.
+- **Task** — implies something the user should do (reply, follow up, create something, investigate).
+- **Dismiss** — noise, thank-yous, retweet notifications, anything not actionable.
+- **Uncategorisable** — you cannot confidently place it in any of the four above. Surface to the user instead of guessing.
 
-1. Load the Todoist API token from the environment (`TODOIST_API_TOKEN`).
-2. Call `TodoistApi.listProjects()` once and cache the result for the entire session. You will need the `#Planning` project's ID for Triage Queue entries.
+## 4. Present the plan
 
-Do this by running a one-off Node script inline or via bash — use the `createTodoistApi` and `getTodoistToken` functions from `scripts/lib/todoist-api.mts`. **Always invoke Node with `--env-file=.env`** so `TODOIST_API_TOKEN` is loaded (e.g. `node --env-file=.env -e '...'`).
+Show the user the categories, and ask them if they are correct.
 
-## 3. Loop — one mention at a time, oldest-first
+Do NOT show tasks you are planning to dismiss.
 
-For each mention in the open set (they are already sorted oldest-first by the fetch script):
+Use human-readable descriptions. Don't show ID's to the user. Say "@theo said that your course looked great." Provide links to the tweets to view them - but only for ones where a real decision might need to be made.
 
-### 3a. Show the mention
+## 5. Apply edits
 
-Print the mention block exactly as it appeared in the fetch output so the user can read it.
+If the user requests edits (e.g. "move mention 123 to Dismiss", "rename the new note to X", "use the Inbox project not Foo"), update the plan and re-print only the changed sections. Confirm before executing.
 
-### 3b. Propose an action
+## 6. Execute
 
-Based on the mention's content and thread context, propose one of four actions:
-
-- **Note** — the mention contains an original thought, insight, claim, or observation worth preserving in the Obsidian vault.
-- **Task** — the mention implies something the user should do (reply, follow up, create something, investigate).
-- **Triage Queue** — the mention might be worth something but you aren't sure what; defer the decision.
-- **Dismiss** — the mention is noise, a thank-you, a retweet notification, or otherwise not actionable.
-
-State your recommendation with a brief reason, then ask the user to confirm or choose a different action. Wait for their response before proceeding.
-
-### 3c. Perform the chosen action
-
-#### Action: Note
-
-1. **Propose a role tag.** Decide whether this is a `#hook` (has enough opinion, surprise, or claim-strength to anchor a Pitch on its own) or a `#brick` (substance without hook-strength — explanatory, definitional, structural). State your recommendation and let the user confirm or flip it.
-
-2. **Search the vault for merge candidates.** Grep `/mnt/d/Obsidian Vault/AI Research/` for keyword matches against the mention text — use filenames plus the first ~5 lines of each matching note. Present the top 3 matches to the user.
-
-3. **Offer a choice:** "New note / [[Existing 1]] / [[Existing 2]] / [[Existing 3]]"
-
-4. **If new note:**
-   - Propose a Title Case filename (no extension in the display — the file will be `Title Case Name.md`).
-   - Let the user confirm or edit the filename.
-   - Write the file to `/mnt/d/Obsidian Vault/AI Research/<filename>.md` with:
-     - The role tag (`#hook` or `#brick`) on the first line.
-     - A blank line.
-     - A body paragraph synthesising the mention's insight. Include the tweet permalink (`https://x.com/<author_username>/status/<tweet_id>`) inline in the body text.
-
-5. **If merging into an existing note:**
-   - Read the existing file.
-   - **Do not change the existing role tag** — re-characterisation is a separate flow.
-   - Append a blank line, then a new paragraph synthesising the mention's insight with the tweet permalink inline.
-   - Write the updated file.
-
-#### Action: Task
-
-1. Present the cached project list to the user. Ask which project.
-2. If the chosen project is `#Planning`, fetch its sections via `TodoistApi.listSections(projectId)` and ask which section. **A Task in `#Planning` requires a section** — refuse to create it without one (that would be a Triage Queue entry, not a Task; see ADR-0001).
-3. If the chosen project is not `#Planning`, no section is required.
-4. Help the user draft the task content from the mention text.
-5. Create the task via `TodoistApi.addTask({ content, projectId, sectionId })`.
-
-Use the Todoist API by running inline Node against `scripts/lib/todoist-api.mts`.
-
-#### Action: Triage Queue
-
-Create a Todoist task in the `#Planning` project with **no section**. This is the Triage Queue convention from ADR-0001.
-
-1. Help the user draft brief task content from the mention.
-2. Call `TodoistApi.addTriageQueueEntry({ content, planningProjectId: <planning_project_id> })`. (The plain `addTask` requires a `sectionId` and will refuse a sectionless write — that refusal is the ADR-0001 invariant encoded in the API layer.)
-
-#### Action: Dismiss
-
-No side effects. Move directly to closing the mention.
-
-### 3d. Close the mention
-
-After the action's side effects have succeeded, close the mention:
+Dismissed tasks should be dismissed via:
 
 ```
-npm run x:close-mention -- <mention_id> [<mention_id>...]
+npm run x:close-mention -- <id1> <id2> <id3> ...
 ```
 
-You can pass multiple ids in one invocation if a side-effect closes more than one mention at once (e.g. dismissing a cluster of noise replies).
+## 8. Report and continue
 
-**Only close after the side effect succeeds.** If a vault write fails, or a Todoist API call errors, surface the error to the user and do **not** close the mention — it stays open so they can retry on the next pass.
+After executing the batch, print a summary:
 
-### 3e. Next mention
+```
+Batch complete. <closed>/<batch_size> closed.
+Failures: <list of mention ids + reason>, or "none".
+```
 
-Move to the next mention in the current batch. Repeat from step 3a. When the batch is exhausted, pull the next 10 with `npm run x:mentions -- --limit 10 --no-fetch` and continue.
+Then:
 
-## 4. Stop
+- Pull the next 100 with `npm run x:mentions -- --limit 100` and repeat from step 3
+
+## 9. Stop
 
 Stop when:
 
 - The open set is exhausted — tell the user "All mentions processed."
-- The user asks to stop — acknowledge and stop immediately. Unprocessed mentions remain open for the next session.
+- The user asks to stop — acknowledge and stop immediately.
 
 ## Failure handling
 
 - If `npm run x:mentions -- --count` or any subsequent batch read fails, surface the error and stop — do not proceed with a stale open set.
-- If a side-effect fails (vault write error, Todoist API error), print the error, do **not** close the mention, and ask the user whether to retry or skip to the next mention.
-- If `npm run x:close-mention` fails, surface the error. The mention was not closed — note this to the user.
+- If `npm run x:close-mention` fails, surface the error. The mention(s) were not closed — note this to the user.
 
 ## Rules
 
 - Always close mentions via `npm run x:close-mention`, never by writing to the mention store directly.
-- Never skip the user confirmation step — this is interactive Capture, not auto-triage.
+- Never execute the plan without explicit user approval — this is interactive Capture, not auto-triage.
+- Resolve every Uncategorisable item before executing; never silently drop a mention.
 - Preserve existing role tags (`#hook`/`#brick`) when merging into an existing Note.
 - The tweet permalink format is `https://x.com/<author_username>/status/<tweet_id>`.
-- Todoist projects and sections are fetched live at session start, not from a hardcoded list.
+- Only close a mention after its side effect succeeds.

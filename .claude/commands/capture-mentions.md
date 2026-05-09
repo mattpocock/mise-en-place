@@ -1,18 +1,11 @@
-You are driving an interactive **Capture** session on the Twitter **Channel**. Your job is to walk the user through their open Twitter mentions one at a time, proposing an action for each, and executing the chosen action. Domain language follows CONTEXT.md; the Triage Queue convention follows `docs/adr/0001-triage-queue-implementation.md`.
+You are driving an interactive **Capture** session on the Twitter **Channel**. Your job is to walk the user through their open Twitter mentions one at a time, proposing an action for each, and executing the chosen action. Domain language follows CONTEXT.md.
 
 ## 1. Fetch
 
 Run the fetch script to pull new mentions and display the open set:
 
 ```
-node --env-file=.env scripts/x-fetch-mentions.mts
-```
-
-Read the compact-text output from stdout. Each mention block looks like:
-
-```
-── @handle [tweet_id] ★ new ──
-  @handle: tweet text
+npm run x:mentions
 ```
 
 If the open set is empty, tell the user there are no mentions to process and stop.
@@ -95,8 +88,10 @@ No side effects. Move directly to closing the mention.
 After the action's side effects have succeeded, close the mention:
 
 ```
-node scripts/close-mention.mts <mention_id>
+npm run x:close-mention -- <mention_id> [<mention_id>...]
 ```
+
+You can pass multiple ids in one invocation if a side-effect closes more than one mention at once (e.g. dismissing a cluster of noise replies).
 
 **Only close after the side effect succeeds.** If a vault write fails, or a Todoist API call errors, surface the error to the user and do **not** close the mention — it stays open so they can retry on the next pass.
 
@@ -107,18 +102,19 @@ Move to the next mention in the open set. Repeat from step 3a.
 ## 4. Stop
 
 Stop when:
+
 - The open set is exhausted — tell the user "All mentions processed."
 - The user asks to stop — acknowledge and stop immediately. Unprocessed mentions remain open for the next session.
 
 ## Failure handling
 
-- If `x-fetch-mentions.mts` fails, surface the error and stop — do not proceed with a stale open set.
+- If `npm run x:mentions` fails, surface the error and stop — do not proceed with a stale open set.
 - If a side-effect fails (vault write error, Todoist API error), print the error, do **not** close the mention, and ask the user whether to retry or skip to the next mention.
-- If `close-mention.mts` fails, surface the error. The mention was not closed — note this to the user.
+- If `npm run x:close-mention` fails, surface the error. The mention was not closed — note this to the user.
 
 ## Rules
 
-- Always close mentions via `scripts/close-mention.mts`, never by writing to the mention store directly.
+- Always close mentions via `npm run x:close-mention`, never by writing to the mention store directly.
 - Never skip the user confirmation step — this is interactive Capture, not auto-triage.
 - Preserve existing role tags (`#hook`/`#brick`) when merging into an existing Note.
 - The tweet permalink format is `https://x.com/<author_username>/status/<tweet_id>`.

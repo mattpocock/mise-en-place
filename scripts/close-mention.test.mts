@@ -11,11 +11,11 @@ const execFileAsync = promisify(execFile);
 const SCRIPT = new URL("./close-mention.mts", import.meta.url).pathname;
 
 async function run(
-  mentionId: string | undefined,
+  mentionIds: string[] | undefined,
   storePath: string,
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   const args = ["--experimental-strip-types", "--no-warnings", SCRIPT];
-  if (mentionId !== undefined) args.push(mentionId);
+  if (mentionIds !== undefined) args.push(...mentionIds);
   try {
     const { stdout, stderr } = await execFileAsync("node", args, {
       env: { ...process.env, MENTION_STORE_PATH: storePath },
@@ -61,7 +61,7 @@ describe("close-mention CLI", () => {
       }),
     );
 
-    const result = await run("100", storePath);
+    const result = await run(["100"], storePath);
     assert.equal(result.code, 0, `expected exit 0, got ${result.code}`);
     assert.equal(result.stdout, "", "expected silent stdout");
 
@@ -72,7 +72,7 @@ describe("close-mention CLI", () => {
   it("exits non-zero for unknown mention id", async () => {
     await writeFile(storePath, storeWith({}));
 
-    const result = await run("nonexistent", storePath);
+    const result = await run(["nonexistent"], storePath);
     assert.notEqual(result.code, 0, "expected non-zero exit");
     assert.match(result.stderr, /nonexistent/, "error should mention the id");
   });
@@ -95,12 +95,72 @@ describe("close-mention CLI", () => {
     );
 
     const originalData = await readFile(storePath, "utf8");
-    const result = await run("200", storePath);
+    const result = await run(["200"], storePath);
     assert.equal(result.code, 0, "expected exit 0 for already-closed");
     assert.equal(result.stdout, "", "expected silent stdout");
 
     const afterData = await readFile(storePath, "utf8");
     assert.equal(afterData, originalData, "file should not be rewritten");
+  });
+
+  it("closes multiple mentions in one invocation", async () => {
+    await writeFile(
+      storePath,
+      storeWith({
+        "100": {
+          id: "100",
+          fetched_at: "2026-05-08T10:00:00.000Z",
+          closed_at: null,
+          text: "hello",
+          author_username: "alice",
+          author_name: "Alice",
+          created_at: "2026-05-08T09:00:00.000Z",
+          parent_ref_id: null,
+        },
+        "101": {
+          id: "101",
+          fetched_at: "2026-05-08T10:00:00.000Z",
+          closed_at: null,
+          text: "hi",
+          author_username: "bob",
+          author_name: "Bob",
+          created_at: "2026-05-08T09:30:00.000Z",
+          parent_ref_id: null,
+        },
+      }),
+    );
+
+    const result = await run(["100", "101"], storePath);
+    assert.equal(result.code, 0, `expected exit 0, got ${result.code}`);
+
+    const data = JSON.parse(await readFile(storePath, "utf8"));
+    assert.notEqual(data["100"].closed_at, null, "100 should be closed");
+    assert.notEqual(data["101"].closed_at, null, "101 should be closed");
+  });
+
+  it("closes valid ids and reports unknown ones with non-zero exit", async () => {
+    await writeFile(
+      storePath,
+      storeWith({
+        "100": {
+          id: "100",
+          fetched_at: "2026-05-08T10:00:00.000Z",
+          closed_at: null,
+          text: "hello",
+          author_username: "alice",
+          author_name: "Alice",
+          created_at: "2026-05-08T09:00:00.000Z",
+          parent_ref_id: null,
+        },
+      }),
+    );
+
+    const result = await run(["100", "nonexistent"], storePath);
+    assert.notEqual(result.code, 0, "expected non-zero exit");
+    assert.match(result.stderr, /nonexistent/);
+
+    const data = JSON.parse(await readFile(storePath, "utf8"));
+    assert.notEqual(data["100"].closed_at, null, "valid id should still close");
   });
 
   it("exits non-zero when no mention-id argument is provided", async () => {

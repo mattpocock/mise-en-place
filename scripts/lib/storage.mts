@@ -12,6 +12,7 @@ export type Tokens = {
 
 export type State = {
   last_seen_mention_id?: string;
+  last_fetched_at?: string;
 };
 
 export type CachedTweet = Tweet & { author: MentionAuthor | null };

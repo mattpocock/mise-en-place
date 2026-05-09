@@ -2,13 +2,25 @@ You are driving an interactive **Capture** session on the Twitter **Channel**. Y
 
 ## 1. Fetch
 
-Run the fetch script to pull new mentions and display the open set:
+First, get the size of the open set:
 
 ```
-npm run x:mentions
+npm run x:mentions -- --count
 ```
 
-If the open set is empty, tell the user there are no mentions to process and stop.
+This prints `<N> mentions, <M> threads`. Fetching from the X API happens implicitly here, gated by a 60s TTL on the local cache — you don't need a separate fetch step.
+
+If `N` is 0, tell the user there are no mentions to process and stop.
+
+Then load a chewable batch of 10 mentions to start the session:
+
+```
+npm run x:mentions -- --limit 10 --no-fetch
+```
+
+`--no-fetch` is safe here because the previous `--count` call already refreshed the cache. Use `--no-fetch` on every read after the first to avoid redundant API calls within the session.
+
+When the batch is exhausted, pull the next 10 the same way — closed mentions drop out of the open set, so `--offset 0` keeps surfacing the oldest unprocessed ones. Only widen the limit or restart fetching (drop `--no-fetch`) if the user pauses long enough that the cache might be stale (>60s) or asks you to re-pull.
 
 ## 2. Session setup
 
@@ -97,7 +109,7 @@ You can pass multiple ids in one invocation if a side-effect closes more than on
 
 ### 3e. Next mention
 
-Move to the next mention in the open set. Repeat from step 3a.
+Move to the next mention in the current batch. Repeat from step 3a. When the batch is exhausted, pull the next 10 with `npm run x:mentions -- --limit 10 --no-fetch` and continue.
 
 ## 4. Stop
 
@@ -108,7 +120,7 @@ Stop when:
 
 ## Failure handling
 
-- If `npm run x:mentions` fails, surface the error and stop — do not proceed with a stale open set.
+- If `npm run x:mentions -- --count` or any subsequent batch read fails, surface the error and stop — do not proceed with a stale open set.
 - If a side-effect fails (vault write error, Todoist API error), print the error, do **not** close the mention, and ask the user whether to retry or skip to the next mention.
 - If `npm run x:close-mention` fails, surface the error. The mention was not closed — note this to the user.
 

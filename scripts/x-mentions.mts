@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Command } from "commander";
 import { getValidAccessToken } from "./lib/oauth.mts";
 import {
   getMentions,
@@ -13,6 +14,7 @@ import {
   saveState,
   loadTweetCache,
   saveTweetCache,
+  type State,
   type TweetCache,
 } from "./lib/storage.mts";
 import {
@@ -24,86 +26,188 @@ import { groupIntoMentionThreads } from "./lib/thread-builder.mts";
 
 const STORE_PATH = "data/x-mentions.json";
 const MAX_THREAD_DEPTH = 30;
+const DEFAULT_TTL_SECONDS = 60;
 
-const tokens = await getValidAccessToken();
-const state = await loadState();
-const cache = await loadTweetCache();
-const store = new JsonFileMentionStore(STORE_PATH);
+type Options = {
+  limit?: number;
+  offset: number;
+  count: boolean;
+  fetch: boolean;
+  forceFetch: boolean;
+  ttl: number;
+};
 
-const allMentions: Mention[] = [];
-const authorsById = new Map<string, MentionAuthor>();
-let paginationToken: string | undefined;
-let newestId: string | undefined;
+const program = new Command();
+program
+  .name("x-mentions")
+  .description("List open Twitter mentions for triage.")
+  .option("-l, --limit <n>", "max mentions to render", parseNonNegativeInt)
+  .option(
+    "-o, --offset <n>",
+    "skip the first N mentions",
+    parseNonNegativeInt,
+    0,
+  )
+  .option("-c, --count", "print only the count; skip rendering", false)
+  .option("--no-fetch", "skip the X API fetch even if the cache is stale")
+  .option("--force-fetch", "fetch even if within the TTL window", false)
+  .option(
+    "--ttl <seconds>",
+    "how long a fetch stays warm",
+    parseNonNegativeInt,
+    DEFAULT_TTL_SECONDS,
+  );
 
-do {
-  const res = await getMentions({
-    accessToken: tokens.access_token,
-    userId: tokens.user_id,
-    sinceId: state.last_seen_mention_id,
-    paginationToken,
+program.parse();
+await main(program.opts<Options>());
+
+function parseNonNegativeInt(raw: string): number {
+  const n = Number(raw);
+  if (!Number.isInteger(n) || n < 0) {
+    throw new Error(`expected a non-negative integer, got "${raw}"`);
+  }
+  return n;
+}
+
+async function main(opts: Options): Promise<void> {
+  const state = await loadState();
+  const cache = await loadTweetCache();
+  const store = new JsonFileMentionStore(STORE_PATH);
+
+  const shouldFetch = decideFetch(state, opts);
+  if (shouldFetch) {
+    await runFetch(state, cache, store);
+  }
+
+  if (opts.count) {
+    const open = await store.listOpen();
+    const threads = groupIntoMentionThreads(open, cache, new Set());
+    console.log(`${open.length} mentions, ${threads.length} threads`);
+    return;
+  }
+
+  await renderOpen(store, cache, opts);
+}
+
+function decideFetch(state: State, opts: Options): boolean {
+  if (opts.forceFetch) return true;
+  if (!opts.fetch) return false;
+  if (!state.last_fetched_at) return true;
+  const ageSeconds =
+    (Date.now() - new Date(state.last_fetched_at).getTime()) / 1000;
+  return ageSeconds >= opts.ttl;
+}
+
+async function runFetch(
+  state: State,
+  cache: TweetCache,
+  store: JsonFileMentionStore,
+): Promise<void> {
+  const tokens = await getValidAccessToken();
+
+  const allMentions: Mention[] = [];
+  const authorsById = new Map<string, MentionAuthor>();
+  let paginationToken: string | undefined;
+  let newestId: string | undefined;
+
+  do {
+    const res = await getMentions({
+      accessToken: tokens.access_token,
+      userId: tokens.user_id,
+      sinceId: state.last_seen_mention_id,
+      paginationToken,
+    });
+    if (res.data) allMentions.push(...res.data);
+    for (const u of res.includes?.users ?? []) authorsById.set(u.id, u);
+    for (const t of res.includes?.tweets ?? []) cacheTweet(cache, authorsById, t);
+    newestId = newestId ?? res.meta.newest_id;
+    paginationToken = res.meta.next_token;
+  } while (paginationToken);
+
+  for (const m of allMentions) cacheTweet(cache, authorsById, m);
+
+  const ancestorsAdded = await resolveParentChains(
+    cache,
+    authorsById,
+    tokens.access_token,
+  );
+  if (ancestorsAdded > 0) {
+    console.error(
+      `Resolved ${ancestorsAdded} additional ancestor tweet(s) up the reply chain.`,
+    );
+  }
+
+  await saveTweetCache(cache);
+
+  const now = new Date().toISOString();
+  for (const m of allMentions) {
+    const author = authorsById.get(m.author_id);
+    const parentRef = m.referenced_tweets?.find(
+      (r: ReferencedTweet) => r.type === "replied_to",
+    );
+    const stored: StoredMention = {
+      id: m.id,
+      fetched_at: now,
+      closed_at: null,
+      text: m.text,
+      author_username: author?.username ?? "unknown",
+      author_name: author?.name ?? "unknown",
+      created_at: m.created_at,
+      parent_ref_id: parentRef?.id ?? null,
+    };
+    await store.upsertOpen(stored);
+  }
+
+  await saveState({
+    last_seen_mention_id: newestId ?? state.last_seen_mention_id,
+    last_fetched_at: now,
   });
-  if (res.data) allMentions.push(...res.data);
-  for (const u of res.includes?.users ?? []) authorsById.set(u.id, u);
-  for (const t of res.includes?.tweets ?? []) cacheTweet(t);
-  newestId = newestId ?? res.meta.newest_id;
-  paginationToken = res.meta.next_token;
-} while (paginationToken);
 
-console.log(
-  `Fetched ${allMentions.length} new mention(s) for @${tokens.username}.`,
-);
-
-for (const m of allMentions) cacheTweet(m);
-
-const ancestorsAdded = await resolveParentChains();
-if (ancestorsAdded > 0) {
-  console.log(
-    `Resolved ${ancestorsAdded} additional ancestor tweet(s) up the reply chain.`,
+  const implicitlyClosed = await reconcileImplicitCloses(
+    cache,
+    store,
+    tokens.username,
   );
+  if (implicitlyClosed > 0) {
+    console.error(
+      `Implicitly closed ${implicitlyClosed} mention(s) already replied to by @${tokens.username}.`,
+    );
+  }
 }
 
-await saveTweetCache(cache);
+async function renderOpen(
+  store: JsonFileMentionStore,
+  cache: TweetCache,
+  opts: Options,
+): Promise<void> {
+  const openSet = await store.listOpen();
+  const totalThreads = groupIntoMentionThreads(openSet, cache, new Set()).length;
 
-const fetchedIds = new Set(allMentions.map((m) => m.id));
-const now = new Date().toISOString();
+  if (openSet.length === 0) {
+    console.log("\nNo open mentions.");
+    return;
+  }
 
-for (const m of allMentions) {
-  const author = authorsById.get(m.author_id);
-  const parentRef = m.referenced_tweets?.find(
-    (r: ReferencedTweet) => r.type === "replied_to",
-  );
-  const stored: StoredMention = {
-    id: m.id,
-    fetched_at: now,
-    closed_at: null,
-    text: m.text,
-    author_username: author?.username ?? "unknown",
-    author_name: author?.name ?? "unknown",
-    created_at: m.created_at,
-    parent_ref_id: parentRef?.id ?? null,
-  };
-  await store.upsertOpen(stored);
-}
+  const end =
+    opts.limit === undefined ? openSet.length : opts.offset + opts.limit;
+  const slice = openSet.slice(opts.offset, end);
 
-if (newestId) {
-  await saveState({ last_seen_mention_id: newestId });
-  console.log(`Updated last_seen_mention_id → ${newestId}`);
-}
+  if (slice.length === 0) {
+    console.log(
+      `\nNo mentions in slice (offset=${opts.offset}, limit=${opts.limit ?? "∞"}). ` +
+        `Total: ${openSet.length} mentions, ${totalThreads} threads.`,
+    );
+    return;
+  }
 
-const implicitlyClosed = await reconcileImplicitCloses();
-if (implicitlyClosed > 0) {
+  const threads = groupIntoMentionThreads(slice, cache, new Set());
+  const sliceDesc =
+    opts.limit === undefined && opts.offset === 0
+      ? ""
+      : ` (showing ${slice.length} of ${openSet.length}, offset=${opts.offset})`;
+
   console.log(
-    `Implicitly closed ${implicitlyClosed} mention(s) already replied to by @${tokens.username}.`,
-  );
-}
-
-const openSet = await store.listOpen();
-if (openSet.length === 0) {
-  console.log("\nNo open mentions.");
-} else {
-  const threads = groupIntoMentionThreads(openSet, cache, fetchedIds);
-  console.log(
-    `\n── ${threads.length} mention thread(s), ${openSet.length} open mention(s) ──\n`,
+    `\n── ${threads.length} mention thread(s), ${slice.length} open mention(s)${sliceDesc} ──\n`,
   );
   for (const thread of threads) {
     console.log(renderThread(thread));
@@ -111,7 +215,11 @@ if (openSet.length === 0) {
   }
 }
 
-function cacheTweet(tweet: Tweet): void {
+function cacheTweet(
+  cache: TweetCache,
+  authorsById: Map<string, MentionAuthor>,
+  tweet: Tweet,
+): void {
   const existing = cache[tweet.id];
   cache[tweet.id] = {
     ...tweet,
@@ -130,32 +238,37 @@ function unresolvedParentIds(c: TweetCache): string[] {
   return [...ids];
 }
 
-async function resolveParentChains(): Promise<number> {
+async function resolveParentChains(
+  cache: TweetCache,
+  authorsById: Map<string, MentionAuthor>,
+  accessToken: string,
+): Promise<number> {
   let added = 0;
   for (let depth = 0; depth < MAX_THREAD_DEPTH; depth++) {
     const missing = unresolvedParentIds(cache);
     if (missing.length === 0) break;
     for (let i = 0; i < missing.length; i += 100) {
       const batch = missing.slice(i, i + 100);
-      const res = await getTweets({
-        accessToken: tokens.access_token,
-        ids: batch,
-      });
+      const res = await getTweets({ accessToken, ids: batch });
       for (const u of res.includes?.users ?? []) authorsById.set(u.id, u);
       for (const t of res.data ?? []) {
-        cacheTweet(t);
+        cacheTweet(cache, authorsById, t);
         added++;
       }
-      for (const t of res.includes?.tweets ?? []) cacheTweet(t);
+      for (const t of res.includes?.tweets ?? []) cacheTweet(cache, authorsById, t);
     }
   }
   return added;
 }
 
-async function reconcileImplicitCloses(): Promise<number> {
+async function reconcileImplicitCloses(
+  cache: TweetCache,
+  store: JsonFileMentionStore,
+  username: string,
+): Promise<number> {
   const repliedToBySelf = new Set<string>();
   for (const t of Object.values(cache)) {
-    if (t.author?.username !== tokens.username) continue;
+    if (t.author?.username !== username) continue;
     for (const ref of t.referenced_tweets ?? []) {
       if (ref.type === "replied_to") repliedToBySelf.add(ref.id);
     }

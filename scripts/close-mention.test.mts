@@ -170,4 +170,156 @@ describe("close-mention CLI", () => {
     assert.notEqual(result.code, 0, "expected non-zero exit");
     assert.match(result.stderr, /usage/i, "should print usage hint");
   });
+
+  describe("range syntax (id..id)", () => {
+    function openMention(id: string): Record<string, unknown> {
+      return {
+        id,
+        fetched_at: "2026-05-08T10:00:00.000Z",
+        closed_at: null,
+        text: `tweet ${id}`,
+        author_username: "alice",
+        author_name: "Alice",
+        created_at: "2026-05-08T09:00:00.000Z",
+        parent_ref_id: null,
+      };
+    }
+
+    function closedMention(id: string): Record<string, unknown> {
+      return { ...openMention(id), closed_at: "2026-05-08T11:00:00.000Z" };
+    }
+
+    it("closes all open mentions in the inclusive range", async () => {
+      await writeFile(
+        storePath,
+        storeWith({
+          "100": openMention("100"),
+          "150": openMention("150"),
+          "200": openMention("200"),
+          "300": openMention("300"),
+        }),
+      );
+
+      const result = await run(["100..200"], storePath);
+      assert.equal(result.code, 0, `expected exit 0, got ${result.code}: ${result.stderr}`);
+      assert.match(result.stderr, /3 mentions/, "summary should report 3 closed");
+
+      const data = JSON.parse(await readFile(storePath, "utf8"));
+      assert.notEqual(data["100"].closed_at, null);
+      assert.notEqual(data["150"].closed_at, null);
+      assert.notEqual(data["200"].closed_at, null);
+      assert.equal(data["300"].closed_at, null, "outside-range stays open");
+    });
+
+    it("range with single-id span (id..id) closes only that id", async () => {
+      await writeFile(
+        storePath,
+        storeWith({ "100": openMention("100"), "200": openMention("200") }),
+      );
+
+      const result = await run(["100..100"], storePath);
+      assert.equal(result.code, 0);
+
+      const data = JSON.parse(await readFile(storePath, "utf8"));
+      assert.notEqual(data["100"].closed_at, null);
+      assert.equal(data["200"].closed_at, null);
+    });
+
+    it("range matching only already-closed mentions errors", async () => {
+      await writeFile(
+        storePath,
+        storeWith({
+          "100": closedMention("100"),
+          "150": closedMention("150"),
+          "300": openMention("300"),
+        }),
+      );
+
+      const result = await run(["100..200"], storePath);
+      assert.notEqual(result.code, 0, "expected non-zero exit");
+      assert.match(result.stderr, /no open mentions in range/i);
+    });
+
+    it("range matching no stored mentions errors", async () => {
+      await writeFile(storePath, storeWith({ "1000": openMention("1000") }));
+
+      const result = await run(["100..200"], storePath);
+      assert.notEqual(result.code, 0);
+      assert.match(result.stderr, /100\.\.200/);
+    });
+
+    it("reversed range (high..low) errors", async () => {
+      await writeFile(storePath, storeWith({ "150": openMention("150") }));
+
+      const result = await run(["200..100"], storePath);
+      assert.notEqual(result.code, 0);
+      assert.match(result.stderr, /left endpoint/i);
+    });
+
+    it("non-numeric endpoint errors", async () => {
+      await writeFile(storePath, storeWith({ "100": openMention("100") }));
+
+      const result = await run(["100..abc"], storePath);
+      assert.notEqual(result.code, 0);
+      assert.match(result.stderr, /numeric/i);
+    });
+
+    it("open-ended range (id..) errors", async () => {
+      await writeFile(storePath, storeWith({ "100": openMention("100") }));
+
+      const result = await run(["100.."], storePath);
+      assert.notEqual(result.code, 0);
+      assert.match(result.stderr, /endpoints required/i);
+    });
+
+    it("multiple .. in argument errors", async () => {
+      await writeFile(storePath, storeWith({ "100": openMention("100") }));
+
+      const result = await run(["100..200..300"], storePath);
+      assert.notEqual(result.code, 0);
+      assert.match(result.stderr, /one ".." separator/);
+    });
+
+    it("mixes individual ids and ranges in one invocation", async () => {
+      await writeFile(
+        storePath,
+        storeWith({
+          "50": openMention("50"),
+          "100": openMention("100"),
+          "150": openMention("150"),
+          "500": openMention("500"),
+        }),
+      );
+
+      const result = await run(["50", "100..150", "500"], storePath);
+      assert.equal(result.code, 0, `expected exit 0, got ${result.code}: ${result.stderr}`);
+
+      const data = JSON.parse(await readFile(storePath, "utf8"));
+      assert.notEqual(data["50"].closed_at, null);
+      assert.notEqual(data["100"].closed_at, null);
+      assert.notEqual(data["150"].closed_at, null);
+      assert.notEqual(data["500"].closed_at, null);
+    });
+
+    it("range with closed mentions interleaved closes only opens", async () => {
+      await writeFile(
+        storePath,
+        storeWith({
+          "100": openMention("100"),
+          "120": closedMention("120"),
+          "140": openMention("140"),
+        }),
+      );
+
+      const originalClosedAt = "2026-05-08T11:00:00.000Z";
+      const result = await run(["100..200"], storePath);
+      assert.equal(result.code, 0);
+      assert.match(result.stderr, /2 mentions/, "should close 2, skip the already-closed");
+
+      const data = JSON.parse(await readFile(storePath, "utf8"));
+      assert.notEqual(data["100"].closed_at, null);
+      assert.equal(data["120"].closed_at, originalClosedAt, "already-closed timestamp untouched");
+      assert.notEqual(data["140"].closed_at, null);
+    });
+  });
 });

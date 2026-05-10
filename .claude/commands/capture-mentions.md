@@ -50,6 +50,14 @@ Dismissed tasks should be dismissed via:
 npm run x:close-mention -- <id1> <id2> <id3> ...
 ```
 
+Or, for a contiguous block of ids, use range syntax `<from>..<to>` (inclusive on both ends, numeric comparison over the open set):
+
+```
+npm run x:close-mention -- 1234567890000000000..1234567890000000050
+```
+
+Ranges and individual ids can be mixed in one invocation.
+
 ## 8. Report and continue
 
 After executing the batch, print a summary:

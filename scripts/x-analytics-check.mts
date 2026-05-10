@@ -106,15 +106,6 @@ function render(cache: LikesCache, sort: SortKey): void {
   const tweets = Object.values(cache.tweets);
   const now = Date.now();
 
-  if (cache.last_fetched_at) {
-    const ageMin = Math.round(
-      (now - new Date(cache.last_fetched_at).getTime()) / 60_000,
-    );
-    console.log(`\n${dim(`fetched ${ageMin}m ago · TTL ${TTL_HOURS}h`)}\n`);
-  } else {
-    console.log(`\n${dim("no cached data")}\n`);
-  }
-
   if (tweets.length === 0) {
     console.log("No tweets in the last 7 days.\n");
     return;
@@ -180,14 +171,13 @@ function renderBlock(
   const views = m.impression_count;
 
   const recentTag = recent ? `${bold("[recent]")}${DIM} ` : "";
-  const header = `${DIM}${recentTag}${fmtAge(ageHours)} ago${RESET}`;
   const body = t.text.replace(/\n/g, " ");
   const counts =
-    `${DIM}${m.reply_count} reply · ${m.retweet_count} retweet · ${m.quote_count} quote · ${RESET}` +
+    `${DIM}${recentTag}${fmtAge(ageHours)} ago · ${m.reply_count} replies · ${m.retweet_count} retweets · ${m.quote_count} quotes · ${RESET}` +
     `${bold(`${m.like_count} likes`)}` +
     (views !== undefined
       ? `${dim(" · ")}${bold(`${fmtCount(views)} views`)}`
       : "");
   const url = dim(`https://x.com/${username ?? "i"}/status/${t.id}`);
-  return `${header}\n${body}\n${counts}\n${url}`;
+  return `${body}\n${counts}\n${url}`;
 }

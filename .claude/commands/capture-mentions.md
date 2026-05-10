@@ -26,7 +26,7 @@ Read every mention in the batch and assign each to one of five groups:
 
 - **Interesting** — original thought, insight, claim, or observation worth considering.
 - **Testimonial** — praise worthy of being included in a testimonial on my website. Usually only of course material.
-- **Task** — implies something the user should do (reply, follow up, create something, investigate).
+- **Question** — an interesting question, where answering it may result in an enlightening or useful conversation. Need not be positive - sometimes good conversations come from straight-up trolls.
 - **Dismiss** — noise, thank-yous, retweet notifications, anything not actionable.
 - **Uncategorisable** — you cannot confidently place it in any of the four above. Surface to the user instead of guessing.
 

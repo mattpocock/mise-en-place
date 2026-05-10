@@ -89,6 +89,7 @@ async function runFetch(cache: LikesCache): Promise<LikesCache> {
   const fetchedAt = now.toISOString();
   const tweets: Record<string, CachedLikedTweet> = {};
   for (const t of fetched) {
+    if (t.referenced_tweets && t.referenced_tweets.length > 0) continue;
     tweets[t.id] = { ...t, fetched_at: fetchedAt };
   }
 

@@ -21,12 +21,15 @@ The mentions ADR (0002) reaches the opposite conclusion for opposite reasons: th
 
 ## What's in scope
 
-The fetch uses `users/:id/tweets` with `start_time = now - 168h, exclude=retweets,replies`. This keeps:
+Original tweets only — the standalone posts. The fetch uses `users/:id/tweets` with `start_time = now - 168h, exclude=retweets,replies`, then drops anything with `referenced_tweets` client-side (which catches quote-tweets, since the API's `exclude` doesn't cover them).
 
-- **Original tweets** — Deliverables on the Twitter Channel.
-- **Quote tweets** — also Deliverables ("standalone Tweets" in the Deliverable Calendar).
+Excluded:
 
-It excludes pure replies (conversation, not shipped content) and retweets (not authored). Analytics Review is "what's resonating *as content I shipped*"; replies skew the signal — a hot reply in someone else's thread isn't a Deliverable.
+- **Replies** — conversation, not shipped content.
+- **Retweets** — not authored.
+- **Quote tweets** — initially in scope (they appear on the Deliverable Calendar as "standalone Tweets"), but in practice they read as amplification or reaction posts and skew the felt-sense signal away from the standalone-original case Analytics Review is for. Reversed during first live run.
+
+Analytics Review is "what's resonating *as standalone content I shipped*"; the originals are the cleanest read.
 
 ## Refresh strategy: full pull, not `since_id`
 
@@ -43,6 +46,7 @@ Each cached tweet records `fetched_at` alongside the metrics, so future delta-tr
 - **Configurable `--ttl` / `--force-fetch`.** Mirrors `x-mentions` for consistency, but undoes the Lurk-guard property in one keystroke. Rejected — the discipline is the feature.
 - **`since_id` incremental refresh.** Cheaper on quota, but skips metric updates on existing tweets. Rejected.
 - **Include replies in scope.** Captures "felt sense of my Twitter presence as one stream," but conflates Deliverable-resonance with conversation-engagement. Rejected.
+- **Include quote-tweets in scope.** Initially in. Reversed after the first live run: quote-tweets dominated the output as amplification of others' posts and crowded out the standalone-original signal Analytics Review is for.
 - **Hard cutoff at 24h ago, no "today".** Stricter Lurk-guard but over-corrects — an 8h-old tweet has real signal. Replaced with the visual `[recent]` marker.
 - **Extending `data/x-tweet-cache.json`.** Cheaper, but couples mutable metrics to an immutable-thread-context store with different invalidation rules. Rejected.
 - **Name `x-likes` / `x-resonance`.** `x-likes` undersells views; `x-resonance` overclaims (the script shows numbers, the human reads resonance). Settled on `x-analytics-check` — Activity-shaped, scoped to one Channel by the `x-` prefix.

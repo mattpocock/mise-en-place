@@ -11,9 +11,12 @@ export type Tokens = {
 };
 
 export type State = {
-  last_seen_mention_id?: string;
+  last_seen_reply_id?: string;
+  last_seen_quote_id?: string;
   last_fetched_at?: string;
 };
+
+type RawState = State & { last_seen_mention_id?: string };
 
 export type CachedTweet = Tweet & { author: MentionAuthor | null };
 export type TweetCache = Record<string, CachedTweet>;
@@ -39,8 +42,14 @@ async function writeJson(path: string, value: unknown): Promise<void> {
 
 export const loadTokens = () => readJson<Tokens>(TOKENS_PATH);
 export const saveTokens = (t: Tokens) => writeJson(TOKENS_PATH, t);
-export const loadState = async (): Promise<State> =>
-  (await readJson<State>(STATE_PATH)) ?? {};
+export const loadState = async (): Promise<State> => {
+  const raw = (await readJson<RawState>(STATE_PATH)) ?? {};
+  if (raw.last_seen_mention_id && !raw.last_seen_reply_id) {
+    raw.last_seen_reply_id = raw.last_seen_mention_id;
+  }
+  delete raw.last_seen_mention_id;
+  return raw;
+};
 export const saveState = (s: State) => writeJson(STATE_PATH, s);
 
 export const loadTweetCache = async (): Promise<TweetCache> =>

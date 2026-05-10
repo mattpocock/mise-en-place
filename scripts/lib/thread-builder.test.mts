@@ -24,6 +24,7 @@ function makeCachedTweet(
 
 function makeMention(overrides: Partial<StoredMention> & { id: string }): StoredMention {
   return {
+    kind: "reply",
     fetched_at: "2026-05-08T10:00:00.000Z",
     closed_at: null,
     text: "tweet",
@@ -148,6 +149,63 @@ describe("groupIntoMentionThreads", () => {
     assert.equal(threads.length, 2);
     assert.equal(threads[0]!.rootKey, "10");
     assert.equal(threads[1]!.rootKey, "1");
+  });
+
+  it("builds a 2-node thread for a quote mention with cached parent", () => {
+    const cache: TweetCache = {
+      "100": makeCachedTweet({ id: "100", text: "Matt's tweet" }),
+      "200": makeCachedTweet({
+        id: "200",
+        text: "Quoting Matt",
+        referenced_tweets: [{ type: "quoted", id: "100" }],
+      }),
+    };
+    const mentions = [
+      makeMention({ id: "200", kind: "quote", parent_ref_id: "100" }),
+    ];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0]!.rootKey, "100");
+    assert.equal(threads[0]!.rootResolved, true);
+    assert.equal(threads[0]!.root.id, "100");
+    assert.equal(threads[0]!.root.children.length, 1);
+    const leaf = threads[0]!.root.children[0]!;
+    assert.equal(leaf.id, "200");
+    assert.equal(leaf.kind, "quote");
+    assert.equal(leaf.status, "open");
+  });
+
+  it("renders a quote mention as unresolved when the quoted tweet is missing", () => {
+    const cache: TweetCache = {};
+    const mentions = [
+      makeMention({ id: "200", kind: "quote", parent_ref_id: "100" }),
+    ];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads.length, 1);
+    assert.equal(threads[0]!.rootKey, "100");
+    assert.equal(threads[0]!.rootResolved, false);
+    assert.equal(threads[0]!.root.tweet, null);
+    assert.equal(threads[0]!.root.children[0]!.kind, "quote");
+  });
+
+  it("does not group quote and reply mentions sharing a parent id", () => {
+    const cache: TweetCache = {
+      "100": makeCachedTweet({ id: "100", text: "Matt's tweet" }),
+      "200": makeCachedTweet({
+        id: "200",
+        referenced_tweets: [{ type: "replied_to", id: "100" }],
+      }),
+      "300": makeCachedTweet({
+        id: "300",
+        referenced_tweets: [{ type: "quoted", id: "100" }],
+      }),
+    };
+    const mentions = [
+      makeMention({ id: "200", kind: "reply", parent_ref_id: "100" }),
+      makeMention({ id: "300", kind: "quote", parent_ref_id: "100" }),
+    ];
+    const threads = groupIntoMentionThreads(mentions, cache, new Set());
+    assert.equal(threads.length, 2);
   });
 
   it("prunes branches that don't lead to an open mention", () => {

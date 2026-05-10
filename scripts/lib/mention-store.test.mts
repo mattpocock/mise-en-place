@@ -8,6 +8,7 @@ import { JsonFileMentionStore, type StoredMention } from "./mention-store.mts";
 function makeMention(overrides: Partial<StoredMention> = {}): StoredMention {
   return {
     id: "1",
+    kind: "reply",
     fetched_at: "2026-05-08T10:00:00.000Z",
     closed_at: null,
     text: "hello @matt",

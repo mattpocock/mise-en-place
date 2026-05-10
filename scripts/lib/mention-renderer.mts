@@ -9,11 +9,16 @@ const BOLD = "\x1b[1m";
 const RESET = "\x1b[0m";
 const YELLOW = "\x1b[33m";
 const GREEN = "\x1b[32m";
+const CYAN = "\x1b[36m";
 
 function statusMarker(s: NodeStatus): string {
   if (s === "new") return ` ${YELLOW}★ new${RESET}`;
   if (s === "open") return ` ${GREEN}● open${RESET}`;
   return "";
+}
+
+function kindMarker(node: ThreadTreeNode): string {
+  return node.kind === "quote" ? ` ${CYAN}[QUOTE]${RESET}` : "";
 }
 
 function flattenText(text: string): string {
@@ -26,7 +31,7 @@ function nodeLine(node: ThreadTreeNode): string {
   }
   const handle = node.tweet.author?.username ?? "unknown";
   const text = flattenText(node.tweet.text);
-  return `${BOLD}@${handle}${RESET}: ${text}${statusMarker(node.status)} ${DIM}[${node.id}]${RESET}`;
+  return `${BOLD}@${handle}${RESET}: ${text}${statusMarker(node.status)}${kindMarker(node)} ${DIM}[${node.id}]${RESET}`;
 }
 
 function renderNode(

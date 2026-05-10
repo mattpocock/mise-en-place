@@ -4,6 +4,7 @@ import { getValidAccessToken } from "./lib/oauth.mts";
 import {
   getMentions,
   getTweets,
+  searchQuotes,
   type Mention,
   type MentionAuthor,
   type ReferencedTweet,
@@ -105,26 +106,44 @@ async function runFetch(
 ): Promise<void> {
   const tokens = await getValidAccessToken();
 
-  const allMentions: Mention[] = [];
+  const replies: Mention[] = [];
+  const quotes: Mention[] = [];
   const authorsById = new Map<string, MentionAuthor>();
-  let paginationToken: string | undefined;
-  let newestId: string | undefined;
 
+  let replyPagination: string | undefined;
+  let newestReplyId: string | undefined;
   do {
     const res = await getMentions({
       accessToken: tokens.access_token,
       userId: tokens.user_id,
-      sinceId: state.last_seen_mention_id,
-      paginationToken,
+      sinceId: state.last_seen_reply_id,
+      paginationToken: replyPagination,
     });
-    if (res.data) allMentions.push(...res.data);
+    if (res.data) replies.push(...res.data);
     for (const u of res.includes?.users ?? []) authorsById.set(u.id, u);
     for (const t of res.includes?.tweets ?? []) cacheTweet(cache, authorsById, t);
-    newestId = newestId ?? res.meta.newest_id;
-    paginationToken = res.meta.next_token;
-  } while (paginationToken);
+    newestReplyId = newestReplyId ?? res.meta.newest_id;
+    replyPagination = res.meta.next_token;
+  } while (replyPagination);
 
-  for (const m of allMentions) cacheTweet(cache, authorsById, m);
+  let quotePagination: string | undefined;
+  let newestQuoteId: string | undefined;
+  do {
+    const res = await searchQuotes({
+      accessToken: tokens.access_token,
+      username: tokens.username,
+      sinceId: state.last_seen_quote_id,
+      paginationToken: quotePagination,
+    });
+    if (res.data) quotes.push(...res.data);
+    for (const u of res.includes?.users ?? []) authorsById.set(u.id, u);
+    for (const t of res.includes?.tweets ?? []) cacheTweet(cache, authorsById, t);
+    newestQuoteId = newestQuoteId ?? res.meta.newest_id;
+    quotePagination = res.meta.next_token;
+  } while (quotePagination);
+
+  for (const m of replies) cacheTweet(cache, authorsById, m);
+  for (const m of quotes) cacheTweet(cache, authorsById, m);
 
   const ancestorsAdded = await resolveParentChains(
     cache,
@@ -140,26 +159,16 @@ async function runFetch(
   await saveTweetCache(cache);
 
   const now = new Date().toISOString();
-  for (const m of allMentions) {
-    const author = authorsById.get(m.author_id);
-    const parentRef = m.referenced_tweets?.find(
-      (r: ReferencedTweet) => r.type === "replied_to",
-    );
-    const stored: StoredMention = {
-      id: m.id,
-      fetched_at: now,
-      closed_at: null,
-      text: m.text,
-      author_username: author?.username ?? "unknown",
-      author_name: author?.name ?? "unknown",
-      created_at: m.created_at,
-      parent_ref_id: parentRef?.id ?? null,
-    };
-    await store.upsertOpen(stored);
+  for (const m of replies) {
+    await store.upsertOpen(toStoredMention(m, "reply", authorsById, now));
+  }
+  for (const m of quotes) {
+    await store.upsertOpen(toStoredMention(m, "quote", authorsById, now));
   }
 
   await saveState({
-    last_seen_mention_id: newestId ?? state.last_seen_mention_id,
+    last_seen_reply_id: newestReplyId ?? state.last_seen_reply_id,
+    last_seen_quote_id: newestQuoteId ?? state.last_seen_quote_id,
     last_fetched_at: now,
   });
 
@@ -215,6 +224,30 @@ async function renderOpen(
   }
 }
 
+function toStoredMention(
+  m: Mention,
+  kind: "reply" | "quote",
+  authorsById: Map<string, MentionAuthor>,
+  now: string,
+): StoredMention {
+  const author = authorsById.get(m.author_id);
+  const refType = kind === "quote" ? "quoted" : "replied_to";
+  const parentRef = m.referenced_tweets?.find(
+    (r: ReferencedTweet) => r.type === refType,
+  );
+  return {
+    id: m.id,
+    kind,
+    fetched_at: now,
+    closed_at: null,
+    text: m.text,
+    author_username: author?.username ?? "unknown",
+    author_name: author?.name ?? "unknown",
+    created_at: m.created_at,
+    parent_ref_id: parentRef?.id ?? null,
+  };
+}
+
 function cacheTweet(
   cache: TweetCache,
   authorsById: Map<string, MentionAuthor>,
@@ -266,16 +299,18 @@ async function reconcileImplicitCloses(
   store: JsonFileMentionStore,
   username: string,
 ): Promise<number> {
-  const repliedToBySelf = new Set<string>();
+  const respondedToBySelf = new Set<string>();
   for (const t of Object.values(cache)) {
     if (t.author?.username !== username) continue;
     for (const ref of t.referenced_tweets ?? []) {
-      if (ref.type === "replied_to") repliedToBySelf.add(ref.id);
+      if (ref.type === "replied_to" || ref.type === "quoted") {
+        respondedToBySelf.add(ref.id);
+      }
     }
   }
   let closed = 0;
   for (const m of await store.listOpen()) {
-    if (repliedToBySelf.has(m.id)) {
+    if (respondedToBySelf.has(m.id)) {
       await store.close(m.id);
       closed++;
     }

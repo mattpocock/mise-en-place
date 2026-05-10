@@ -168,6 +168,44 @@ describe("renderThread", () => {
     assert.ok(!out.includes("line one\n"));
   });
 
+  it("renders [QUOTE] label on quote-kind nodes", () => {
+    const thread = makeThread(
+      makeNode({
+        id: "100",
+        tweet: makeCachedTweet({ id: "100", text: "Matt's tweet" }),
+        children: [
+          makeNode({
+            id: "200",
+            tweet: makeCachedTweet({ id: "200", text: "Quoting Matt" }),
+            status: "open",
+            kind: "quote",
+          }),
+        ],
+      }),
+    );
+    const out = stripAnsi(renderThread(thread));
+    assert.ok(out.includes("[QUOTE]"), "quote label rendered");
+  });
+
+  it("does not render [QUOTE] on reply-kind or unspecified nodes", () => {
+    const thread = makeThread(
+      makeNode({
+        id: "1",
+        tweet: makeCachedTweet({ id: "1" }),
+        children: [
+          makeNode({
+            id: "2",
+            tweet: makeCachedTweet({ id: "2" }),
+            status: "open",
+            kind: "reply",
+          }),
+        ],
+      }),
+    );
+    const out = stripAnsi(renderThread(thread));
+    assert.ok(!out.includes("[QUOTE]"), "no quote label on reply");
+  });
+
   it("emits no marker for context nodes", () => {
     const thread = makeThread(
       makeNode({ id: "1", tweet: makeCachedTweet({ id: "1" }) }),

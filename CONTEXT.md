@@ -59,8 +59,18 @@ _Avoid_: Drop, Step, Installment, Beat
 The selling layer of a Deliverable on a Channel — title, thumbnail, framing copy. Derived from the Pitch's Hook(s). Core Packaging lives on the Pitch; per-Channel variants are produced at ship time.
 _Avoid_: Marketing copy, Promo, Metadata
 
+**Mention**:
+Any tweet on the Twitter Channel that references one of Matt's tweets — either a reply that @-mentions him (a **Reply Mention**) or a tweet that quotes one of his (a **Quote Mention**). The triage unit of the fetch-mentions Capture pipeline. Both kinds are treated as equally important; they differ only in how they render and how they're fetched.
+_Avoid_: Reference (too generic), Touch, Hit
+
+**Reply Mention**:
+A Mention whose referencing tweet replies into a thread Matt is part of. Has a chain of ancestors (potentially deep) that forms a **Mention Thread**. Fetched from the X API mentions timeline (`/users/:id/mentions`).
+
+**Quote Mention**:
+A Mention whose referencing tweet quotes one of Matt's tweets. Has no thread — the display is a 2-node group: Matt's quoted tweet on top, the quoting tweet beneath, labelled `[QUOTE]`. Fetched from X API Recent Search via the `quotes_of:` operator.
+
 **Mention Thread**:
-A rooted tree of cached tweets on the Twitter Channel that contains one or more open **Mentions**. Grouped by walking up to the topmost ancestor (or the topmost unresolved parent id, if the chain dies at a missing tweet). Pruned to only the nodes on the path from root to an open Mention. Used by the fetch-mentions Capture pipeline to present a Twitter-shaped conversation view rather than a flat list.
+A rooted tree of cached tweets on the Twitter Channel that contains one or more open **Reply Mentions**. Grouped by walking up to the topmost ancestor (or the topmost unresolved parent id, if the chain dies at a missing tweet). Pruned to only the nodes on the path from root to an open Mention. Used by the fetch-mentions Capture pipeline to present a Twitter-shaped conversation view rather than a flat list. **Quote Mentions** render through the same tree shape (root = Matt's quoted tweet, child = the quote tweet) but are not threads in the conversational sense.
 _Avoid_: Conversation (overloaded by Twitter's own API term), Mention Group, Reply Chain
 
 **Task**:

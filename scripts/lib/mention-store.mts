@@ -2,8 +2,11 @@ import { readFile, writeFile, rename, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { randomBytes } from "node:crypto";
 
+export type MentionKind = "reply" | "quote";
+
 export type StoredMention = {
   id: string;
+  kind: MentionKind;
   fetched_at: string;
   closed_at: string | null;
   text: string;
@@ -32,7 +35,11 @@ export class JsonFileMentionStore implements MentionStore {
   private async load(): Promise<StoreData> {
     try {
       const raw = await readFile(this.filePath, "utf8");
-      return JSON.parse(raw) as StoreData;
+      const parsed = JSON.parse(raw) as Record<string, StoredMention>;
+      for (const m of Object.values(parsed)) {
+        if (!m.kind) m.kind = "reply";
+      }
+      return parsed;
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === "ENOENT") return {};
       throw err;

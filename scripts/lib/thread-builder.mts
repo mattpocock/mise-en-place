@@ -1,6 +1,6 @@
 import type { CachedTweet, TweetCache } from "./storage.mts";
 import type { ReferencedTweet } from "./x-api.mts";
-import type { StoredMention } from "./mention-store.mts";
+import type { StoredMention, MentionKind } from "./mention-store.mts";
 
 export type NodeStatus = "new" | "open" | "context";
 
@@ -8,6 +8,7 @@ export type ThreadTreeNode = {
   id: string;
   tweet: CachedTweet | null;
   status: NodeStatus;
+  kind?: MentionKind;
   children: ThreadTreeNode[];
 };
 
@@ -48,6 +49,8 @@ function resolveRoot(
 }
 
 function synthesizeFromMention(m: StoredMention): CachedTweet {
+  const refType: ReferencedTweet["type"] =
+    m.kind === "quote" ? "quoted" : "replied_to";
   return {
     id: m.id,
     text: m.text,
@@ -60,7 +63,7 @@ function synthesizeFromMention(m: StoredMention): CachedTweet {
       quote_count: 0,
     },
     referenced_tweets: m.parent_ref_id
-      ? [{ type: "replied_to", id: m.parent_ref_id }]
+      ? [{ type: refType, id: m.parent_ref_id }]
       : undefined,
     author: {
       id: "",
@@ -71,12 +74,51 @@ function synthesizeFromMention(m: StoredMention): CachedTweet {
   };
 }
 
+function buildQuoteThread(
+  m: StoredMention,
+  cache: TweetCache,
+  newIds: Set<string>,
+): MentionThread {
+  const status: NodeStatus = newIds.has(m.id) ? "new" : "open";
+  const leafNode: ThreadTreeNode = {
+    id: m.id,
+    tweet: cache[m.id] ?? null,
+    status,
+    kind: "quote",
+    children: [],
+  };
+  const parentId = m.parent_ref_id;
+  if (!parentId) {
+    return {
+      rootKey: m.id,
+      rootResolved: leafNode.tweet !== null,
+      newestOpenAt: m.created_at,
+      root: leafNode,
+    };
+  }
+  const parentTweet = cache[parentId] ?? null;
+  const root: ThreadTreeNode = {
+    id: parentId,
+    tweet: parentTweet,
+    status: "context",
+    children: [leafNode],
+  };
+  return {
+    rootKey: parentId,
+    rootResolved: parentTweet !== null,
+    newestOpenAt: m.created_at,
+    root,
+  };
+}
+
 export function groupIntoMentionThreads(
   openMentions: StoredMention[],
   inputCache: TweetCache,
   newIds: Set<string>,
 ): MentionThread[] {
-  const openIds = new Set(openMentions.map((m) => m.id));
+  const replyMentions = openMentions.filter((m) => m.kind !== "quote");
+  const quoteMentions = openMentions.filter((m) => m.kind === "quote");
+  const openIds = new Set(replyMentions.map((m) => m.id));
   // Fall back to StoredMention data for any open mention missing from the
   // tweet cache — e.g. when the cache file is absent or out of date.
   const cache: TweetCache = { ...inputCache };
@@ -92,7 +134,7 @@ export function groupIntoMentionThreads(
   };
   const groups = new Map<string, Group>();
 
-  for (const m of openMentions) {
+  for (const m of replyMentions) {
     const { rootKey, rootResolved, pathIds } = resolveRoot(m.id, cache);
     let g = groups.get(rootKey);
     if (!g) {
@@ -169,6 +211,10 @@ export function groupIntoMentionThreads(
       newestOpenAt,
       root,
     });
+  }
+
+  for (const m of quoteMentions) {
+    threads.push(buildQuoteThread(m, cache, newIds));
   }
 
   threads.sort((a, b) => b.newestOpenAt.localeCompare(a.newestOpenAt));

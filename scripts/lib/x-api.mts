@@ -93,6 +93,24 @@ export function getMentions(opts: {
   );
 }
 
+export function searchQuotes(opts: {
+  accessToken: string;
+  username: string;
+  sinceId?: string;
+  paginationToken?: string;
+}): Promise<MentionsResponse> {
+  const params: Record<string, string> = {
+    query: `quotes_of:${opts.username}`,
+    max_results: "10",
+    "tweet.fields": TWEET_FIELDS,
+    expansions: TWEET_EXPANSIONS,
+    "user.fields": USER_FIELDS,
+  };
+  if (opts.sinceId) params.since_id = opts.sinceId;
+  if (opts.paginationToken) params.next_token = opts.paginationToken;
+  return xGet<MentionsResponse>("/tweets/search/recent", opts.accessToken, params);
+}
+
 export function getTweets(opts: {
   accessToken: string;
   ids: string[];

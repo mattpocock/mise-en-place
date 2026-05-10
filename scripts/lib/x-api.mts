@@ -13,6 +13,7 @@ export type Tweet = {
     reply_count: number;
     like_count: number;
     quote_count: number;
+    impression_count?: number;
   };
   referenced_tweets?: ReferencedTweet[];
 };
@@ -109,6 +110,39 @@ export function searchQuotes(opts: {
   if (opts.sinceId) params.since_id = opts.sinceId;
   if (opts.paginationToken) params.next_token = opts.paginationToken;
   return xGet<MentionsResponse>("/tweets/search/recent", opts.accessToken, params);
+}
+
+export type UserTweetsResponse = {
+  data?: Tweet[];
+  includes?: { users?: MentionAuthor[]; tweets?: Tweet[] };
+  meta: {
+    newest_id?: string;
+    oldest_id?: string;
+    result_count: number;
+    next_token?: string;
+  };
+};
+
+export function getUserTweets(opts: {
+  accessToken: string;
+  userId: string;
+  startTime: string;
+  paginationToken?: string;
+}): Promise<UserTweetsResponse> {
+  const params: Record<string, string> = {
+    max_results: "100",
+    exclude: "retweets,replies",
+    start_time: opts.startTime,
+    "tweet.fields": TWEET_FIELDS,
+    expansions: TWEET_EXPANSIONS,
+    "user.fields": USER_FIELDS,
+  };
+  if (opts.paginationToken) params.pagination_token = opts.paginationToken;
+  return xGet<UserTweetsResponse>(
+    `/users/${opts.userId}/tweets`,
+    opts.accessToken,
+    params,
+  );
 }
 
 export function getTweets(opts: {

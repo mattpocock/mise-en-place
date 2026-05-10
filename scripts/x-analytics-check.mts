@@ -11,7 +11,6 @@ import {
 
 const TTL_HOURS = 3;
 const WINDOW_HOURS = 168;
-const RECENT_HOURS = 24;
 
 const BOLD = "\x1b[1m";
 const DIM = "\x1b[2m";
@@ -166,14 +165,12 @@ function renderBlock(
   username: string | undefined,
 ): string {
   const ageHours = (now - new Date(t.created_at).getTime()) / 3_600_000;
-  const recent = ageHours < RECENT_HOURS;
   const m = t.public_metrics;
   const views = m.impression_count;
 
-  const recentTag = recent ? `${bold("[recent]")}${DIM} ` : "";
   const body = t.text.replace(/\n/g, " ");
   const counts =
-    `${DIM}${recentTag}${fmtAge(ageHours)} ago · ${m.reply_count} replies · ${m.retweet_count} retweets · ${m.quote_count} quotes · ${RESET}` +
+    `${DIM}${fmtAge(ageHours)} ago · ${m.reply_count} replies · ${m.retweet_count} retweets · ${m.quote_count} quotes · ${RESET}` +
     `${bold(`${m.like_count} likes`)}` +
     (views !== undefined
       ? `${dim(" · ")}${bold(`${fmtCount(views)} views`)}`

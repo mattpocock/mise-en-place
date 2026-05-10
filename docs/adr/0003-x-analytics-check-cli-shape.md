@@ -17,7 +17,7 @@ The mentions ADR (0002) reaches the opposite conclusion for opposite reasons: th
 - No subcommands. One operation: "show me my recent tweets and how they did."
 - `--no-fetch` — read the cached snapshot without hitting the API. Useful for iterating on rendering, or when offline. Not an escape hatch from the TTL — it cannot make the cache fresher, only let you re-read what's already there.
 - `--sort likes|views|time` (default `likes`) — likes-desc is the daily felt-sense read; views-desc is the rarer "what got reach but didn't land?" view; time-desc is the neutral chronological scan.
-- Tweets younger than 24h render with a `[recent]` marker. The signal hasn't settled yet — surfacing the data while flagging its unreliability preserves the Lurk-guard property without silently filtering today's posts.
+- Today's tweets render the same as older ones — no special marker. The 3h TTL is the load-bearing Lurk-guard; an extra visual flag was tried during prototyping and removed in the first round of live use as visual noise.
 
 ## What's in scope
 
@@ -47,7 +47,7 @@ Each cached tweet records `fetched_at` alongside the metrics, so future delta-tr
 - **`since_id` incremental refresh.** Cheaper on quota, but skips metric updates on existing tweets. Rejected.
 - **Include replies in scope.** Captures "felt sense of my Twitter presence as one stream," but conflates Deliverable-resonance with conversation-engagement. Rejected.
 - **Include quote-tweets in scope.** Initially in. Reversed after the first live run: quote-tweets dominated the output as amplification of others' posts and crowded out the standalone-original signal Analytics Review is for.
-- **Hard cutoff at 24h ago, no "today".** Stricter Lurk-guard but over-corrects — an 8h-old tweet has real signal. Replaced with the visual `[recent]` marker.
+- **Hard cutoff at 24h ago, no "today".** Stricter Lurk-guard but over-corrects — an 8h-old tweet has real signal. Rejected in favour of letting the 3h TTL carry the discipline alone.
 - **Extending `data/x-tweet-cache.json`.** Cheaper, but couples mutable metrics to an immutable-thread-context store with different invalidation rules. Rejected.
 - **Name `x-likes` / `x-resonance`.** `x-likes` undersells views; `x-resonance` overclaims (the script shows numbers, the human reads resonance). Settled on `x-analytics-check` — Activity-shaped, scoped to one Channel by the `x-` prefix.
 

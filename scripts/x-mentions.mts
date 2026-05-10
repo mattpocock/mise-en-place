@@ -126,21 +126,24 @@ async function runFetch(
     replyPagination = res.meta.next_token;
   } while (replyPagination);
 
-  let quotePagination: string | undefined;
   let newestQuoteId: string | undefined;
-  do {
-    const res = await searchQuotes({
-      accessToken: tokens.access_token,
-      username: tokens.username,
-      sinceId: state.last_seen_quote_id,
-      paginationToken: quotePagination,
-    });
-    if (res.data) quotes.push(...res.data);
-    for (const u of res.includes?.users ?? []) authorsById.set(u.id, u);
-    for (const t of res.includes?.tweets ?? []) cacheTweet(cache, authorsById, t);
-    newestQuoteId = newestQuoteId ?? res.meta.newest_id;
-    quotePagination = res.meta.next_token;
-  } while (quotePagination);
+  if (process.env.X_FETCH_QUOTES === "true") {
+    let quotePagination: string | undefined;
+    do {
+      const res = await searchQuotes({
+        accessToken: tokens.access_token,
+        username: tokens.username,
+        sinceId: state.last_seen_quote_id,
+        paginationToken: quotePagination,
+      });
+      if (res.data) quotes.push(...res.data);
+      for (const u of res.includes?.users ?? []) authorsById.set(u.id, u);
+      for (const t of res.includes?.tweets ?? [])
+        cacheTweet(cache, authorsById, t);
+      newestQuoteId = newestQuoteId ?? res.meta.newest_id;
+      quotePagination = res.meta.next_token;
+    } while (quotePagination);
+  }
 
   for (const m of replies) cacheTweet(cache, authorsById, m);
   for (const m of quotes) cacheTweet(cache, authorsById, m);

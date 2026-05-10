@@ -1,4 +1,6 @@
-const API_BASE = "https://api.todoist.com/rest/v2";
+const API_BASE = "https://api.todoist.com/api/v1";
+
+type Paginated<T> = { results: T[]; next_cursor: string | null };
 
 export type TodoistProject = {
   id: string;
@@ -65,14 +67,31 @@ async function todoistPost<T>(path: string, token: string, body: Record<string, 
   return (await res.json()) as T;
 }
 
+async function collectPaginated<T>(
+  path: string,
+  token: string,
+  params?: Record<string, string>,
+): Promise<T[]> {
+  const all: T[] = [];
+  let cursor: string | null = null;
+  do {
+    const query: Record<string, string> = { ...(params ?? {}) };
+    if (cursor) query.cursor = cursor;
+    const page = await todoistGet<Paginated<T>>(path, token, query);
+    all.push(...page.results);
+    cursor = page.next_cursor;
+  } while (cursor);
+  return all;
+}
+
 export function createTodoistApi(token: string): TodoistApi {
   return {
-    listProjects() {
-      return todoistGet<TodoistProject[]>("/projects", token);
+    async listProjects() {
+      return collectPaginated<TodoistProject>("/projects", token);
     },
 
-    listSections(projectId: string) {
-      return todoistGet<TodoistSection[]>("/sections", token, { project_id: projectId });
+    async listSections(projectId: string) {
+      return collectPaginated<TodoistSection>("/sections", token, { project_id: projectId });
     },
 
     async addTask(args) {
